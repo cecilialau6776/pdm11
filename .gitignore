@@ -1,5 +1,7 @@
 # Compiled class file
 *.class
+# Ignore build directory
+out/
 
 # Log file
 *.log
