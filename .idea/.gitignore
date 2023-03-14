@@ -8,3 +8,5 @@
 /dataSources.local.xml
 # Platform dependent configuration file
 misc.xml
+# External libraries
+/libraries
