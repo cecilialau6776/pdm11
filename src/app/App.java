@@ -104,6 +104,7 @@ public class App implements IApp{
             conn.close();
             session.disconnect();
             System.out.println("Application exiting");
+            System.exit(0);
         } catch (Exception e){
             e.printStackTrace();
         }
