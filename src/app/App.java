@@ -14,7 +14,7 @@ import java.util.Properties;
  *
  * @author Damon Gonzalez
  */
-public class App {
+public class App implements IApp{
 
     /** Usage method for running this program*/
     private final static String usage = "Usage: java App <username> <password>";
@@ -33,6 +33,9 @@ public class App {
 
     /**
      * Creates an App object by establishing a connection to our SQL server
+     * @param username The username of someone with a valid CS account to
+     *                 connect to the postgreSQL server
+     * @param password The password of ...
      */
     public App(String username, String password){
         System.out.println(msg);
@@ -74,11 +77,28 @@ public class App {
             System.err.println("Connection failed, exiting application...");
             System.exit(1);
         }
+
+        //TODO
     }
 
-    /**
-     * Close database connection and exit application
-     */
+    @Override
+    public boolean isUserLoggedIn() {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public boolean logIn(String username, String password) {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public void logOut() {
+        //TODO
+    }
+
+    @Override
     public void exit(){
         try{
             conn.close();
