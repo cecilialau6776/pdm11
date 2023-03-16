@@ -6,6 +6,17 @@ package app;
 public interface IApp {
 
     /**
+     * Helper method to the user interfaces so that they do not ever
+     * deal with the App class directly
+     * @param username The username to create an App with
+     * @param password The password to create an App with
+     * @return An IApp
+     */
+    static IApp createApp(String username, String password){
+        return new App(username, password);
+    }
+
+    /**
      * Tells the caller whether a user is logged in on this application
      * @return true if a user is logged in, false if not
      */
