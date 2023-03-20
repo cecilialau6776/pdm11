@@ -2,15 +2,12 @@ package app;
 
 import app.cli.CommandLineInterface;
 import com.jcraft.jsch.*;
-import javafx.application.Application;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 
 import java.util.*;
-
-import app.gui.GraphicalUserInterface;
 
 /**
  * Database application object.
@@ -22,14 +19,7 @@ import app.gui.GraphicalUserInterface;
 public class App implements IApp{
 
     /** Usage method for running this program*/
-    private final static String USAGE = "Usage: java App <'CLI' or 'GUI'> <cs_username> <cs_password>";
-
-    /** Constants for command line arguments */
-    private final static String GUI = "GUI";
-    private final static String CLI = "CLI";
-
-    /** Collection of constants */
-    private final static List<String> consts = new ArrayList<>(List.of(GUI, CLI));
+    private final static String USAGE = "Usage: java App <cs_username> <cs_password>";
 
     /** Initial message to user */
     private final static String MSG = "Principles of Data Management, Group 11, Database Application";
@@ -127,16 +117,12 @@ public class App implements IApp{
      * @param args command line arguments
      */
     public static void main(String[] args) {
-        if(args.length != 3 || !consts.contains(args[0])){
+        if(args.length != 2){
             System.err.println(USAGE);
             System.exit(1);
         }
 
-        if(args[0].equals(GUI)){
-            Application.launch(GraphicalUserInterface.class, args[1], args[2]);
-        } else { //must be CLI, command line interface
-            CommandLineInterface cli = new CommandLineInterface(args[1], args[2]);
-            cli.launch();
-        }
+        CommandLineInterface cli = new CommandLineInterface(args[0], args[1]);
+        cli.launch();
     }
 }
