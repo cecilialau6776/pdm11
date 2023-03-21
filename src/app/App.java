@@ -77,7 +77,7 @@ public class App implements IApp{
         } catch(Exception e){
             e.printStackTrace();
             System.err.println("Connection failed, exiting application...");
-            System.exit(1);
+            exit(1);//exit on error
         }
 
         //TODO
@@ -101,12 +101,16 @@ public class App implements IApp{
     }
 
     @Override
-    public void exit(){
+    public void exit(int errCode){
         try{
-            conn.close();
-            session.disconnect();
+            if(conn != null){
+                conn.close();
+            }
+            if(session != null){
+                session.disconnect();
+            }
             System.out.println("Application closing");
-            System.exit(0);
+            System.exit(errCode);
         } catch (Exception e){
             e.printStackTrace();
         }

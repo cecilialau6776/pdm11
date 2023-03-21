@@ -42,7 +42,7 @@ public interface IApp {
     /**
      * Closes application and all relevant resources
      */
-    void exit();
+    void exit(int errCode);
 
     //TODO add more methods as needed
 }

@@ -56,6 +56,6 @@ public class CommandLineInterface {
         }
 
         in.close();
-        app.exit();
+        app.exit(0);//exit successfully
     }
 }
