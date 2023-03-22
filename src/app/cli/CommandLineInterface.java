@@ -7,6 +7,7 @@ import java.util.*;
 import app.IApp;
 import app.model.Collection;
 import app.model.Game;
+import app.model.Platform;
 import app.model.User;
 
 /**
@@ -172,15 +173,15 @@ public class CommandLineInterface {
                         selected_game = game_list[input_to_int-1];
                     }
 
-                    String[] user_platforms = app.get_platforms();
+                    Platform[] user_platforms = app.get_platforms();
 
-                    String[] game_platforms = app.get_game_platforms(selected_game);
+                    Platform[] game_platforms = app.get_game_platforms(selected_game);
 
                     boolean platform_match = false;
 
-                    for (String user_platform : user_platforms) {
-                        for (String game_platform : game_platforms) {
-                            if (user_platform.equals(game_platform)) {
+                    for (Platform user_platform : user_platforms) {
+                        for (Platform game_platform : game_platforms) {
+                            if (user_platform.name().equals(game_platform.name())) {
                                 platform_match = true;
                                 break;
                             }

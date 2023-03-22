@@ -149,8 +149,8 @@ public class App implements IApp{
      * @return The list of platforms
      */
     @Override
-    public String[] get_platforms() {
-        return new String[0];
+    public Platform[] get_platforms() {
+        return null;
     }
 
     /**
@@ -160,7 +160,7 @@ public class App implements IApp{
      * @return The platform
      */
     @Override
-    public String[] get_game_platforms(Game game) {
+    public Platform[] get_game_platforms(Game game) {
         return null;
     }
 

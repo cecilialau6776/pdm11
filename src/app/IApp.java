@@ -2,6 +2,7 @@ package app;
 
 import app.model.Collection;
 import app.model.Game;
+import app.model.Platform;
 import app.model.User;
 
 import java.sql.Date;
@@ -48,14 +49,14 @@ public interface IApp {
      * Gets all the platforms of the user logged in.
      * @return The list of platforms
      */
-    String[] get_platforms();
+    Platform[] get_platforms();
 
     /**
      * Gets the platforms that the current game is on.
      * @param game The game to access
      * @return The platforms
      */
-    String[] get_game_platforms(Game game);
+    Platform[] get_game_platforms(Game game);
 
     /**
      * Gets the total play time for all games in the collection.
