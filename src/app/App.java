@@ -160,7 +160,7 @@ public class App implements IApp{
      * @return The platform
      */
     @Override
-    public String get_game_platform(Game game) {
+    public String[] get_game_platforms(Game game) {
         return null;
     }
 
