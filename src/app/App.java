@@ -2,6 +2,7 @@ package app;
 
 import app.cli.CommandLineInterface;
 import app.model.*;
+import app.model.Collection;
 import com.jcraft.jsch.*;
 
 import java.sql.*;
@@ -172,6 +173,193 @@ public class App implements IApp{
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Gets all the collections the user has.
+     *
+     * @return The array of collections the user has
+     */
+    @Override
+    public Collection[] get_collections() {
+        return new Collection[0];
+    }
+
+    /**
+     * Adds a game to a user's collection. Game and collection are confirmed
+     * as valid prior to the call of the function.
+     *
+     * @param collection The collection to add the game to
+     * @param game       The game to add to the collection
+     * @return The updated collection
+     */
+    @Override
+    public Collection collection_add(Collection collection, Game game) {
+        return null;
+    }
+
+    /**
+     * Deletes a collection from the user. Collection is confirmed as valid
+     * prior to the call of the function.
+     *
+     * @param collection The collection to be deleted
+     */
+    @Override
+    public void collection_delete(Collection collection) {
+
+    }
+
+    /**
+     * Rename a collection the user has. Collection is confirmed as valid
+     * prior to the call of the function.
+     *
+     * @param collection The collection to rename
+     * @param new_name   The new name
+     * @return The updated collection
+     */
+    @Override
+    public Collection collection_rename(Collection collection, String new_name) {
+        return null;
+    }
+
+    /**
+     * Creates a new collection for the user.
+     *
+     * @param name The name of the new collection
+     * @return The new empty collection
+     */
+    @Override
+    public Collection collection_create(String name) {
+        return null;
+    }
+
+    /**
+     * Searches the database for games that have a substring of the
+     * name given.
+     *
+     * @param name The substring given
+     * @return Array of games containing the substring in the title
+     */
+    @Override
+    public Game[] search_game_name(String name) {
+        return new Game[0];
+    }
+
+    /**
+     * Searches the database for games that match a certain price.
+     *
+     * @param price The price of the game
+     * @return Array of games of the certain price
+     */
+    @Override
+    public Game[] search_game_price(String price) {
+        return new Game[0];
+    }
+
+    /**
+     * Searches the database for games on a specified platform.
+     *
+     * @param platform The platform
+     * @return Array of games on a platform
+     */
+    @Override
+    public Game[] search_game_platform(String platform) {
+        return new Game[0];
+    }
+
+    /**
+     * Searches the database for games released on a specified
+     * date.
+     *
+     * @param release_date The release date
+     * @return Array of games released on the date
+     */
+    @Override
+    public Game[] search_game_release_date(Date release_date) {
+        return new Game[0];
+    }
+
+    /**
+     * Searches the database for games by a specified developer.
+     *
+     * @param developer The developer
+     * @return Array of games by developer
+     */
+    @Override
+    public Game[] search_game_developer(String developer) {
+        return new Game[0];
+    }
+
+    /**
+     * Searches the database for games in a specified genre.
+     *
+     * @param genre The genre
+     * @return Array of games in genre.
+     */
+    @Override
+    public Game[] search_game_genre(String genre) {
+        return new Game[0];
+    }
+
+    /**
+     * User rates a game on a scale of 1-5 stars. Game is
+     * assumed valid prior to function call.
+     *
+     * @param game   The game to be rated
+     * @param rating The star rating
+     * @return The game with updated rating
+     */
+    @Override
+    public Game rate(Game game, int rating) {
+        return null;
+    }
+
+    /**
+     * User plays a game for a certain amount of time and
+     * the time played is added to user stats. Game is
+     * assumed valid prior to function call.
+     *
+     * @param game The game played
+     * @param time The time played
+     */
+    @Override
+    public void play(Game game, Time time) {
+
+    }
+
+    /**
+     * Searches the database for a user based on their email.
+     *
+     * @param email The user's email
+     * @return The user information if found, null if not
+     */
+    @Override
+    public User search_friend(String email) {
+        return null;
+    }
+
+    /**
+     * Adds a user as a friend. Friend to be added is assumed
+     * as valid user and not the user's friend already prior to
+     * the function call.
+     *
+     * @param friend The friend to add
+     */
+    @Override
+    public void add_friend(User friend) {
+
+    }
+
+    /**
+     * Removes a user as a friend. Friend to be added is assumed
+     * as valid user and already the user's friend prior to the
+     * function call.
+     *
+     * @param friend The friend to remove
+     */
+    @Override
+    public void delete_friend(User friend) {
+
     }
 
     /**
