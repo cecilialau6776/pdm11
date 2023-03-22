@@ -1,9 +1,16 @@
 package app;
 
+import app.model.User;
+
 /**
  * Used by UI to interface to the application
  */
 public interface IApp {
+
+    /**
+     * Closes application and all relevant resources
+     */
+    void exit(int errCode);
 
     /**
      * Helper method to the user interfaces so that they do not ever
@@ -23,15 +30,14 @@ public interface IApp {
     boolean isUserLoggedIn();
 
     /**
-     * Attempts to log a user into this application with the given username
-     * and password
+     * Logs a user into the application with the given username and password,
+     * updating their last_access_date naturally.
      * @param username The username of the user
      * @param password The password of the user
-     * @return true if the user was successfully logged in, false if
-     * authentication was unsuccessful or there is currently another user
-     * logged in
+     * @return The user object if successful, null if authentication was unsuccessful
+     * or another user is currently logged in
      */
-    boolean logIn(String username, String password);
+    User logIn(String username, String password);
 
     /**
      * Logs out the current user. If there is no user logged in than it does
@@ -40,9 +46,15 @@ public interface IApp {
     void logOut();
 
     /**
-     * Closes application and all relevant resources
+     * Creates a new account for a new user using this app. Automatically logs
+     * that user in regardless if there is another user logged in.
+     * @param username The username of the user to create
+     * @param password The password ...
+     * @return The user object of the created user if successful, null if
+     * unsuccessful(i.e. a user with that username already exists)
      */
-    void exit(int errCode);
+    User signUp(String username, String password, String email,
+                String firstname, String lastname);
 
     //TODO add more methods as needed
 }

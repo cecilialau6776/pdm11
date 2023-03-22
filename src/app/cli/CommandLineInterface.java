@@ -3,6 +3,7 @@ package app.cli;
 import java.util.*;
 
 import app.IApp;
+import app.model.User;
 
 /**
  * A command line interface to this database application
@@ -21,8 +22,14 @@ public class CommandLineInterface {
     /** Command to exit the application */
     private final static String EXIT = "EXIT";
 
-    /** List of all possible commands */
-    private final static List<String> commands = new ArrayList<>(List.of(EXIT));
+    /** Command to log in as a user */
+    private final static String LOGIN = "LOGIN";
+
+    /** Command to log out as a user */
+    private final static String LOGOUT = "LOGOUT";
+
+    /** Command to sign up as a user */
+    private final static String SIGNUP = "SIGNUP";
 
     /** The app this interface communicates with */
     private IApp app;
@@ -48,6 +55,17 @@ public class CommandLineInterface {
                 case EXIT -> {
                     System.out.println(EXIT_MESSAGE);
                     exit = true;
+                }
+                case LOGIN -> {
+                    User user = app.logIn(tokens[1], tokens[2]);
+                    System.out.println(user);
+                }
+                case LOGOUT -> {
+                    app.logOut();
+                }
+                case SIGNUP -> {
+                    User user = app.signUp(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
+                    System.out.println(user);
                 }//add more cases
                 default -> {
                     System.out.println(ERR_MESSAGE);

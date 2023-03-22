@@ -1,10 +1,11 @@
 package app;
 
 import app.cli.CommandLineInterface;
+import app.model.*;
 import com.jcraft.jsch.*;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
+import java.sql.*;
+import java.sql.Date;
 import java.util.Properties;
 
 import java.util.*;
@@ -32,6 +33,9 @@ public class App implements IApp{
 
     /** The SSH session on the server */
     private Session session;
+
+    /** The current user logged in, default null */
+    private User currentUser;
 
     /**
      * Creates an App object by establishing a connection to our SQL server
@@ -71,33 +75,12 @@ public class App implements IApp{
             Class.forName(driverName);
             conn = DriverManager.getConnection(url, props);
             System.out.println("Database connection established");
-
-            // Do something with the database....
-
         } catch(Exception e){
             e.printStackTrace();
             System.err.println("Connection failed, exiting application...");
             exit(1);//exit on error
         }
-
-        //TODO
-    }
-
-    @Override
-    public boolean isUserLoggedIn() {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean logIn(String username, String password) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public void logOut() {
-        //TODO
+        //TODO do some more stuff
     }
 
     @Override
@@ -113,6 +96,81 @@ public class App implements IApp{
             System.exit(errCode);
         } catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean isUserLoggedIn() {
+        return currentUser != null;
+    }
+
+    @Override
+    public User logIn(String username, String password) {
+        if(currentUser != null){
+            return null;
+        }
+
+        String query = "SELECT * FROM \"user\" " +
+                "WHERE username = \'" + username + "\' AND password = \'" + password + "\'";
+        try{
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            if(rs.next()){
+                String rs_username = rs.getString("username");
+                String rs_password = rs.getString("password");
+                String rs_email = rs.getString("email");
+                String rs_firstname = rs.getString("firstname");
+                String rs_lastname = rs.getString("lastname");
+                Date rs_creation_date = rs.getDate("creation_date");
+
+                Date current_date = new Date(new java.util.Date().getTime());//to update last access date
+                String update_query = "UPDATE \"user\" SET "
+                        + "last_access_date = \'" + current_date.toString()
+                        + "\' WHERE username = \'" + username + "\'";
+                stmt.executeUpdate(update_query);
+
+                currentUser = new User(rs_username, rs_password, rs_email,
+                        rs_firstname, rs_lastname, current_date,
+                        rs_creation_date);
+                return currentUser;
+            } else {
+                System.out.println("No user found");
+                return null;
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public void logOut() {
+        currentUser = null;
+    }
+
+    @Override
+    public User signUp(String username, String password, String email,
+                       String firstname, String lastname) {
+        String check_query = "SELECT username FROM \"user\""
+                + " WHERE username = \'" + username + "\'";
+        Date sqlDate = new Date(new java.util.Date().getTime());//the current date in sql format
+        String insert_query = "INSERT INTO \"user\""
+                + " VALUES (\'" + username + "\',\'" + password
+                + "\',\'" + email + "\',\'" + firstname
+                + "\',\'" + lastname + "\',\'" + sqlDate
+                + "\',\'" + sqlDate + "\')";
+        try{
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(check_query);
+            if(!rs.next()){//the username is not used by anybody else
+                stmt.executeUpdate(insert_query);
+                return logIn(username, password);
+            } else {
+                return null;
+            }
+        } catch (SQLException e){
+            e.printStackTrace();
+            return null;
         }
     }
 
