@@ -1,5 +1,7 @@
 package app.model;
 
+import java.sql.Time;
+
 /**
  * Record to store a Collection
  * @param collid The collection id, unique identifier
@@ -10,6 +12,7 @@ public record Collection(
         int collid,
         String coll_username,
         String coll_name,
-        Game[] games
+        Game[] games,
+        Time total_playtime
 ) {
 }

@@ -1,8 +1,12 @@
 package app.cli;
 
+import java.sql.Array;
+import java.sql.Time;
 import java.util.*;
 
 import app.IApp;
+import app.model.Collection;
+import app.model.Game;
 import app.model.User;
 
 /**
@@ -30,6 +34,24 @@ public class CommandLineInterface {
 
     /** Command to sign up as a user */
     private final static String SIGNUP = "SIGNUP";
+
+    /** Command to list all of user's collections */
+    private final static String GET_COLLECTIONS = "GET_COLLECTIONS";
+
+    /** Command to add a game to a user's collection */
+    private final static String COLLECTION_ADD = "COLLECTION_ADD";
+
+    /** Command to delete a user's collection */
+    private final static String COLLECTION_DELETE = "COLLECTION_DELETE";
+
+    /** Command to rename a user's collection */
+    private final static String COLLECTION_RENAME = "COLLECTION_RENAME";
+
+    /** Command to create a new collection */
+    private final static String COLLECTION_CREATE = "COLLECTION_CREATE";
+
+    /** Command to rate a game */
+    private final static String RATE = "RATE";
 
     /** The app this CLI communicates with */
     private IApp app;
@@ -72,6 +94,80 @@ public class CommandLineInterface {
                 case SIGNUP -> {
                     User user = app.signUp(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
                     System.out.println(user);
+                }
+
+                case GET_COLLECTIONS -> {
+                    Collection[] collections = app.get_collections();
+                    for(int i = 0; i < collections.length; ++i){
+                        for(int j = i+1; j < collections.length; ++j){
+                            Collection first = collections[i];
+                            Collection second = collections[j];
+                            if(first.coll_name().compareTo(second.coll_name()) > 0) {
+                                collections[i] = second;
+                                collections[j] = first;
+                            }
+                        }
+                    }
+                    for (Collection collection : collections) {
+                        System.out.println("Name:\t" + collection.coll_name());
+                        System.out.println("# of games\t" + collection.games().length);
+                        System.out.println("Play time:\t" + collection.total_playtime());
+                    }
+                    System.out.println();
+                }
+
+                case COLLECTION_ADD -> {
+                    Collection[] collections_list_init = app.get_collections();
+                    ArrayList<Collection> collections_list = new ArrayList<>();
+                    for (Collection collection : collections_list_init) {
+                        if (collection.coll_name().equals(tokens[1])) {
+                            collections_list.add(collection);
+                        }
+                    }
+                    Collection selected_coll = collections_list.get(0);
+
+                    if(collections_list.size() > 1) {
+                        System.out.println("Which collection would you like to add the game to (enter the number)?");
+                        for(int i = 0; i < collections_list.size(); ++i) {
+                            Collection curr_coll = collections_list.get(i);
+                            System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
+                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_coll = collections_list.get(input_to_int-1);
+                    }
+                    Game[] game_list = app.search_game_name(tokens[2]);
+                    Game selected_game = game_list[0];
+                    if(game_list.length > 1) {
+                        System.out.println("Which game would you like to add (enter the number)?");
+                        for(int i = 0; i < game_list.length; ++i) {
+                            Game curr_game = game_list[i];
+                            System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
+                                    curr_game.playtime() + "\n\tPlatform: " + curr_game.platform());
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_game = game_list[input_to_int-1];
+                    }
+
+                    app.collection_add(selected_coll, selected_game);
+                }
+
+                case COLLECTION_DELETE -> {
+
+                }
+
+                case COLLECTION_RENAME -> {
+
+                }
+
+                case COLLECTION_CREATE -> {
+
+                }
+
+                case RATE -> {
+
                 }//add more cases
                 default -> {
                     System.out.println(ERR_MESSAGE);
