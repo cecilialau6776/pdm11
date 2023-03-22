@@ -21,7 +21,6 @@ public record Game(
         String genre,
         Company developer,
         Company publisher,
-        Time playtime,
-        String platform
+        Time playtime
 ) {
 }

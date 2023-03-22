@@ -45,6 +45,26 @@ public interface IApp {
     User logIn(String username, String password);
 
     /**
+     * Gets all the platforms of the user logged in.
+     * @return The list of platforms
+     */
+    String[] get_platforms();
+
+    /**
+     * Gets the platform that the current game is on.
+     * @param game The game to access
+     * @return The platform
+     */
+    String get_game_platform(Game game);
+
+    /**
+     * Gets the total play time for all games in the collection.
+     * @param collection The collection
+     * @return Total play time
+     */
+    Time total_playtime_collection(Collection collection);
+
+    /**
      * Logs out the current user. If there is no user logged in than it does
      * nothing.
      */

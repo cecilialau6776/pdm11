@@ -53,6 +53,9 @@ public class CommandLineInterface {
     /** Command to create a new collection */
     private final static String COLLECTION_CREATE = "COLLECTION_CREATE";
 
+    /** Declares current user */
+    private User user;
+
     /** Command to rate a game */
     private final static String RATE = "RATE";
 
@@ -88,19 +91,23 @@ public class CommandLineInterface {
                     exit = true;
                 }
                 case LOGIN -> {
-                    User user = app.logIn(tokens[1], tokens[2]);
-                    System.out.println(user);
+                    this.user = app.logIn(tokens[1], tokens[2]);
+                    System.out.println(this.user);
                 }
                 case LOGOUT -> {
                     app.logOut();
                 }
                 case SIGNUP -> {
-                    User user = app.signUp(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
-                    System.out.println(user);
+                    this.user = app.signUp(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
+                    System.out.println(this.user);
                 }
 
                 case GET_COLLECTIONS -> {
                     Collection[] collections = app.get_collections();
+                    if(collections.length == 0) {
+                        System.out.println("You do not have any collections.");
+                        continue;
+                    }
                     for(int i = 0; i < collections.length; ++i){
                         for(int j = i+1; j < collections.length; ++j){
                             Collection first = collections[i];
@@ -114,7 +121,7 @@ public class CommandLineInterface {
                     for (Collection collection : collections) {
                         System.out.println("Name:\t" + collection.coll_name());
                         System.out.println("# of games\t" + collection.games().length);
-                        System.out.println("Play time:\t" + collection.total_playtime());
+                        System.out.println("Play time:\t" + app.total_playtime_collection(collection));
                     }
                     System.out.println();
                 }
@@ -138,7 +145,8 @@ public class CommandLineInterface {
                         for(int i = 0; i < collections_list.size(); ++i) {
                             Collection curr_coll = collections_list.get(i);
                             System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
-                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                                    curr_coll.games().length + "\n\tPlay time: " +
+                                    app.total_playtime_collection(curr_coll) + "\n");
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -157,18 +165,37 @@ public class CommandLineInterface {
                         for(int i = 0; i < game_list.length; ++i) {
                             Game curr_game = game_list[i];
                             System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                                    curr_game.playtime() + "\n\tPlatform: " + curr_game.platform());
+                                    curr_game.playtime() + "\n\tPlatform: " + app.get_game_platform(curr_game));
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
                         selected_game = game_list[input_to_int-1];
                     }
 
+                    String[] user_platforms = app.get_platforms();
+
+                    boolean platform_match = false;
+
+                    for (String user_platform : user_platforms) {
+                        if (user_platform.equals(app.get_game_platform(selected_game))) {
+                            platform_match = true;
+                        }
+                    }
+
+                    if(!platform_match) {
+                        System.out.println("*WARNING*\nYou do not own the platform this game is on. Proceed (y/n)?");
+                        input = in.nextLine();
+
+                        if(input.equals("n")) {
+                            continue;
+                        }
+                    }
+
                     Collection updated_coll  = app.collection_add(selected_coll, selected_game);
                     System.out.println("Updated collection:");
                     System.out.println("Name:\t" + updated_coll.coll_name());
                     System.out.println("# of games\t" + updated_coll.games().length);
-                    System.out.println("Play time:\t" + updated_coll.total_playtime());
+                    System.out.println("Play time:\t" + app.total_playtime_collection(updated_coll));
                 }
 
                 case COLLECTION_REMOVE -> {
@@ -190,7 +217,8 @@ public class CommandLineInterface {
                         for(int i = 0; i < collections_list.size(); ++i) {
                             Collection curr_coll = collections_list.get(i);
                             System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
-                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                                    curr_coll.games().length + "\n\tPlay time: " +
+                                    app.total_playtime_collection(curr_coll) + "\n");
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -218,7 +246,7 @@ public class CommandLineInterface {
                         for(int i = 0; i < game_list.size(); ++i) {
                             Game curr_game = game_list.get(i);
                             System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                                    curr_game.playtime() + "\n\tPlatform: " + curr_game.platform());
+                                    curr_game.playtime() + "\n\tPlatform: " + app.get_game_platform(curr_game));
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -229,7 +257,7 @@ public class CommandLineInterface {
                     System.out.println("Updated collection:");
                     System.out.println("Name:\t" + updated_coll.coll_name());
                     System.out.println("# of games\t" + updated_coll.games().length);
-                    System.out.println("Play time:\t" + updated_coll.total_playtime());
+                    System.out.println("Play time:\t" + app.total_playtime_collection(updated_coll));
                 }
 
                 case COLLECTION_DELETE -> {
@@ -251,7 +279,8 @@ public class CommandLineInterface {
                         for(int i = 0; i < collections_list.size(); ++i) {
                             Collection curr_coll = collections_list.get(i);
                             System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
-                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                                    curr_coll.games().length + "\n\tPlay time: " +
+                                    app.total_playtime_collection(curr_coll) + "\n");
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -281,7 +310,8 @@ public class CommandLineInterface {
                         for(int i = 0; i < collections_list.size(); ++i) {
                             Collection curr_coll = collections_list.get(i);
                             System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
-                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                                    curr_coll.games().length + "\n\tPlay time: " +
+                                    app.total_playtime_collection(curr_coll) + "\n");
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -293,7 +323,7 @@ public class CommandLineInterface {
                     System.out.println("Renamed collection:");
                     System.out.println("Name:\t" + renamed_coll.coll_name());
                     System.out.println("# of games\t" + renamed_coll.games().length);
-                    System.out.println("Play time:\t" + renamed_coll.total_playtime());
+                    System.out.println("Play time:\t" + app.total_playtime_collection(renamed_coll));
                 }
 
                 case COLLECTION_CREATE -> {
@@ -302,7 +332,7 @@ public class CommandLineInterface {
                     System.out.println("New collection:");
                     System.out.println("Name:\t" + new_coll.coll_name());
                     System.out.println("# of games\t" + new_coll.games().length);
-                    System.out.println("Play time:\t" + new_coll.total_playtime());
+                    System.out.println("Play time:\t" + app.total_playtime_collection(new_coll));
                 }
 
                 case RATE -> {
@@ -319,7 +349,7 @@ public class CommandLineInterface {
                         for(int i = 0; i < game_list.length; ++i) {
                             Game curr_game = game_list[i];
                             System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                                    curr_game.playtime() + "\n\tPlatform: " + curr_game.platform());
+                                    curr_game.playtime() + "\n\tPlatform: " + app.get_game_platform(curr_game));
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -328,7 +358,7 @@ public class CommandLineInterface {
 
                     Game updated_game = app.rate(selected_game, Integer.parseInt(tokens[2]));
 
-                    System.out.println("Successfully rated "+ tokens[2] + " stars.");
+                    System.out.println("Successfully submitted rating.");
 
                 }//add more cases
                 default -> {

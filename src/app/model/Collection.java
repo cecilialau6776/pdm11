@@ -12,7 +12,6 @@ public record Collection(
         int collid,
         String coll_username,
         String coll_name,
-        Game[] games,
-        Time total_playtime
+        Game[] games
 ) {
 }

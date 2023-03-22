@@ -143,6 +143,38 @@ public class App implements IApp{
         }
     }
 
+    /**
+     * Gets all the platforms of the user logged in.
+     *
+     * @return The list of platforms
+     */
+    @Override
+    public String[] get_platforms() {
+        return new String[0];
+    }
+
+    /**
+     * Gets the platform that the current game is on.
+     *
+     * @param game The game to access
+     * @return The platform
+     */
+    @Override
+    public String get_game_platform(Game game) {
+        return null;
+    }
+
+    /**
+     * Gets the total play time for all games in the collection.
+     *
+     * @param collection The collection
+     * @return Total play time
+     */
+    @Override
+    public Time total_playtime_collection(Collection collection) {
+        return null;
+    }
+
     @Override
     public void logOut() {
         currentUser = null;
@@ -194,6 +226,19 @@ public class App implements IApp{
      */
     @Override
     public Collection collection_add(Collection collection, Game game) {
+        return null;
+    }
+
+    /**
+     * Removes a game from a user's collection. Game and collection are confirmed
+     * as valid prior to the call of the function.
+     *
+     * @param collection The collection to remove the game from
+     * @param game       The game to remove from the collection
+     * @return The updated collection
+     */
+    @Override
+    public Collection collection_remove(Collection collection, Game game) {
         return null;
     }
 
