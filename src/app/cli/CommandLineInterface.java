@@ -124,6 +124,10 @@ public class CommandLineInterface {
                             collections_list.add(collection);
                         }
                     }
+                    if(collections_list.size() == 0) {
+                        System.out.println("You do not have a collection with that name.");
+                        continue;
+                    }
                     Collection selected_coll = collections_list.get(0);
 
                     if(collections_list.size() > 1) {
@@ -138,6 +142,12 @@ public class CommandLineInterface {
                         selected_coll = collections_list.get(input_to_int-1);
                     }
                     Game[] game_list = app.search_game_name(tokens[2]);
+
+                    if(game_list.length == 0) {
+                        System.out.println("There is not a game with that name.");
+                        continue;
+                    }
+
                     Game selected_game = game_list[0];
                     if(game_list.length > 1) {
                         System.out.println("Which game would you like to add (enter the number)?");
@@ -151,22 +161,110 @@ public class CommandLineInterface {
                         selected_game = game_list[input_to_int-1];
                     }
 
-                    app.collection_add(selected_coll, selected_game);
+                    Collection updated_coll  = app.collection_add(selected_coll, selected_game);
+                    System.out.println("Updated collection:");
+                    System.out.println("Name:\t" + updated_coll.coll_name());
+                    System.out.println("# of games\t" + updated_coll.games().length);
+                    System.out.println("Play time:\t" + updated_coll.total_playtime());
                 }
 
                 case COLLECTION_DELETE -> {
+                    Collection[] collections_list_init = app.get_collections();
+                    ArrayList<Collection> collections_list = new ArrayList<>();
+                    for (Collection collection : collections_list_init) {
+                        if (collection.coll_name().equals(tokens[1])) {
+                            collections_list.add(collection);
+                        }
+                    }
+                    if(collections_list.size() == 0) {
+                        System.out.println("You do not have a collection with that name.");
+                        continue;
+                    }
+                    Collection selected_coll = collections_list.get(0);
 
+                    if(collections_list.size() > 1) {
+                        System.out.println("Which collection would you like to delete (enter the number)?");
+                        for(int i = 0; i < collections_list.size(); ++i) {
+                            Collection curr_coll = collections_list.get(i);
+                            System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
+                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_coll = collections_list.get(input_to_int-1);
+                    }
+
+                    app.collection_delete(selected_coll);
+                    System.out.println("Collection deleted.");
                 }
 
                 case COLLECTION_RENAME -> {
+                    Collection[] collections_list_init = app.get_collections();
+                    ArrayList<Collection> collections_list = new ArrayList<>();
+                    for (Collection collection : collections_list_init) {
+                        if (collection.coll_name().equals(tokens[1])) {
+                            collections_list.add(collection);
+                        }
+                    }
+                    if(collections_list.size() == 0) {
+                        System.out.println("You do not have a collection with that name.");
+                        continue;
+                    }
+                    Collection selected_coll = collections_list.get(0);
 
+                    if(collections_list.size() > 1) {
+                        System.out.println("Which collection would you like to rename (enter the number)?");
+                        for(int i = 0; i < collections_list.size(); ++i) {
+                            Collection curr_coll = collections_list.get(i);
+                            System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
+                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_coll = collections_list.get(input_to_int-1);
+                    }
+
+                    Collection renamed_coll = app.collection_rename(selected_coll, tokens[2]);
+
+                    System.out.println("Renamed collection:");
+                    System.out.println("Name:\t" + renamed_coll.coll_name());
+                    System.out.println("# of games\t" + renamed_coll.games().length);
+                    System.out.println("Play time:\t" + renamed_coll.total_playtime());
                 }
 
                 case COLLECTION_CREATE -> {
+                    Collection new_coll = app.collection_create(tokens[1]);
 
+                    System.out.println("New collection:");
+                    System.out.println("Name:\t" + new_coll.coll_name());
+                    System.out.println("# of games\t" + new_coll.games().length);
+                    System.out.println("Play time:\t" + new_coll.total_playtime());
                 }
 
                 case RATE -> {
+                    Game[] game_list = app.search_game_name(tokens[1]);
+
+                    if(game_list.length == 0) {
+                        System.out.println("There is not a game with that name.");
+                        continue;
+                    }
+
+                    Game selected_game = game_list[0];
+                    if(game_list.length > 1) {
+                        System.out.println("Which game would you like to rate (enter the number)?");
+                        for(int i = 0; i < game_list.length; ++i) {
+                            Game curr_game = game_list[i];
+                            System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
+                                    curr_game.playtime() + "\n\tPlatform: " + curr_game.platform());
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_game = game_list[input_to_int-1];
+                    }
+
+                    Game updated_game = app.rate(selected_game, Integer.parseInt(tokens[2]));
+
+                    System.out.println("Successfully rated "+ tokens[2] + " stars.");
 
                 }//add more cases
                 default -> {
