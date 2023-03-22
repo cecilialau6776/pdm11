@@ -77,6 +77,15 @@ public interface IApp {
     Collection collection_add(Collection collection, Game game);
 
     /**
+     * Removes a game from a user's collection. Game and collection are confirmed
+     * as valid prior to the call of the function.
+     * @param collection The collection to remove the game from
+     * @param game The game to remove from the collection
+     * @return The updated collection
+     */
+    Collection collection_remove(Collection collection, Game game);
+
+    /**
      * Deletes a collection from the user. Collection is confirmed as valid
      * prior to the call of the function.
      * @param collection The collection to be deleted

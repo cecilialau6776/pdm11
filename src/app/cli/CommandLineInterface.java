@@ -41,6 +41,9 @@ public class CommandLineInterface {
     /** Command to add a game to a user's collection */
     private final static String COLLECTION_ADD = "COLLECTION_ADD";
 
+    /** Command to remove a game from a user's collection */
+    private final static String COLLECTION_REMOVE = "COLLECTION_REMOVE";
+
     /** Command to delete a user's collection */
     private final static String COLLECTION_DELETE = "COLLECTION_DELETE";
 
@@ -162,6 +165,67 @@ public class CommandLineInterface {
                     }
 
                     Collection updated_coll  = app.collection_add(selected_coll, selected_game);
+                    System.out.println("Updated collection:");
+                    System.out.println("Name:\t" + updated_coll.coll_name());
+                    System.out.println("# of games\t" + updated_coll.games().length);
+                    System.out.println("Play time:\t" + updated_coll.total_playtime());
+                }
+
+                case COLLECTION_REMOVE -> {
+                    Collection[] collections_list_init = app.get_collections();
+                    ArrayList<Collection> collections_list = new ArrayList<>();
+                    for (Collection collection : collections_list_init) {
+                        if (collection.coll_name().equals(tokens[1])) {
+                            collections_list.add(collection);
+                        }
+                    }
+                    if(collections_list.size() == 0) {
+                        System.out.println("You do not have a collection with that name.");
+                        continue;
+                    }
+                    Collection selected_coll = collections_list.get(0);
+
+                    if(collections_list.size() > 1) {
+                        System.out.println("Which collection would you like to remove the game from (enter the number)?");
+                        for(int i = 0; i < collections_list.size(); ++i) {
+                            Collection curr_coll = collections_list.get(i);
+                            System.out.println(i+1 + ".\tName: " + curr_coll.coll_name() + "\n\t# of games: " +
+                                    curr_coll.games().length + "\n\tPlay time: " + curr_coll.total_playtime() + "\n");
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_coll = collections_list.get(input_to_int-1);
+                    }
+
+                    Game[] game_list_init = selected_coll.games();
+
+                    ArrayList<Game> game_list = new ArrayList<>();
+
+                    for (Game game : game_list_init) {
+                        if (game.title().equals(tokens[1])) {
+                            game_list.add(game);
+                        }
+                    }
+
+                    if(game_list.size() == 0) {
+                        System.out.println("There is not a game with that name in your collection.");
+                        continue;
+                    }
+
+                    Game selected_game = game_list.get(0);
+                    if(game_list.size() > 1) {
+                        System.out.println("Which game would you like to remove (enter the number)?");
+                        for(int i = 0; i < game_list.size(); ++i) {
+                            Game curr_game = game_list.get(i);
+                            System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
+                                    curr_game.playtime() + "\n\tPlatform: " + curr_game.platform());
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_game = game_list.get(input_to_int-1);
+                    }
+
+                    Collection updated_coll  = app.collection_remove(selected_coll, selected_game);
                     System.out.println("Updated collection:");
                     System.out.println("Name:\t" + updated_coll.coll_name());
                     System.out.println("# of games\t" + updated_coll.games().length);
