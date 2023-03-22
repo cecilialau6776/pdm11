@@ -79,6 +79,8 @@ public class App implements IApp{
             exit(1);//exit on error
         }
         //TODO do some more stuff
+
+        //comment for test commit
     }
 
     @Override
