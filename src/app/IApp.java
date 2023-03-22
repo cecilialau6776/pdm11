@@ -51,11 +51,11 @@ public interface IApp {
     String[] get_platforms();
 
     /**
-     * Gets the platform that the current game is on.
+     * Gets the platforms that the current game is on.
      * @param game The game to access
-     * @return The platform
+     * @return The platforms
      */
-    String get_game_platform(Game game);
+    String[] get_game_platforms(Game game);
 
     /**
      * Gets the total play time for all games in the collection.

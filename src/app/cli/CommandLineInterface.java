@@ -165,7 +165,7 @@ public class CommandLineInterface {
                         for(int i = 0; i < game_list.length; ++i) {
                             Game curr_game = game_list[i];
                             System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                                    curr_game.playtime() + "\n\tPlatform: " + app.get_game_platform(curr_game));
+                                    curr_game.playtime());
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -174,11 +174,16 @@ public class CommandLineInterface {
 
                     String[] user_platforms = app.get_platforms();
 
+                    String[] game_platforms = app.get_game_platforms(selected_game);
+
                     boolean platform_match = false;
 
                     for (String user_platform : user_platforms) {
-                        if (user_platform.equals(app.get_game_platform(selected_game))) {
-                            platform_match = true;
+                        for (String game_platform : game_platforms) {
+                            if (user_platform.equals(game_platform)) {
+                                platform_match = true;
+                                break;
+                            }
                         }
                     }
 
@@ -246,7 +251,7 @@ public class CommandLineInterface {
                         for(int i = 0; i < game_list.size(); ++i) {
                             Game curr_game = game_list.get(i);
                             System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                                    curr_game.playtime() + "\n\tPlatform: " + app.get_game_platform(curr_game));
+                                    curr_game.playtime());
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
@@ -349,7 +354,7 @@ public class CommandLineInterface {
                         for(int i = 0; i < game_list.length; ++i) {
                             Game curr_game = game_list[i];
                             System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                                    curr_game.playtime() + "\n\tPlatform: " + app.get_game_platform(curr_game));
+                                    curr_game.playtime());
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
