@@ -20,12 +20,12 @@ public interface IApp {
     /**
      * Helper method to the user interfaces so that they do not ever
      * deal with the App class directly
-     * @param username The username to create an App with
-     * @param password The password to create an App with
+     * @param cs_username The username to create an App with
+     * @param cs_password The password to create an App with
      * @return An IApp
      */
-    static IApp createApp(String username, String password){
-        return new App(username, password);
+    static IApp createApp(String cs_username, String cs_password){
+        return new App(cs_username, cs_password);
     }
 
     /**

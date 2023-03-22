@@ -9,8 +9,6 @@ import java.sql.*;
 import java.sql.Date;
 import java.util.Properties;
 
-import java.util.*;
-
 /**
  * Database application object.
  *
@@ -40,11 +38,10 @@ public class App implements IApp{
 
     /**
      * Creates an App object by establishing a connection to our SQL server
-     * @param username The username of someone with a valid CS account to
-     *                 connect to the postgreSQL server
-     * @param password The password of ...
+     * @param cs_username Credentials to log into starbug sql server
+     * @param cs_password ...
      */
-    public App(String username, String password){
+    public App(String cs_username, String cs_password){
         System.out.println(MSG);
 
         int lport = 5432;
@@ -56,8 +53,8 @@ public class App implements IApp{
             java.util.Properties config = new java.util.Properties();
             config.put("StrictHostKeyChecking", "no");
             JSch jsch = new JSch();
-            session = jsch.getSession(username, rhost, 22);
-            session.setPassword(password);
+            session = jsch.getSession(cs_username, rhost, 22);
+            session.setPassword(cs_password);
             session.setConfig(config);
             session.setConfig("PreferredAuthentications","publickey,keyboard-interactive,password");
             session.connect();
@@ -70,8 +67,8 @@ public class App implements IApp{
 
             System.out.println("database Url: " + url);
             Properties props = new Properties();
-            props.put("user", username);
-            props.put("password", password);
+            props.put("user", cs_username);
+            props.put("password", cs_password);
 
             Class.forName(driverName);
             conn = DriverManager.getConnection(url, props);

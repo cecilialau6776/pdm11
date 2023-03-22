@@ -31,10 +31,16 @@ public class CommandLineInterface {
     /** Command to sign up as a user */
     private final static String SIGNUP = "SIGNUP";
 
-    /** The app this interface communicates with */
+    /** The app this CLI communicates with */
     private IApp app;
-    public CommandLineInterface(String username, String password){
-        this.app = IApp.createApp(username, password);
+
+    /**
+     * Constructs a CLI by creating the application it uses as a backend
+     * @param cs_username Credentials for logging into starbug server
+     * @param cs_password ...
+     */
+    public CommandLineInterface(String cs_username, String cs_password){
+        this.app = IApp.createApp(cs_username, cs_password);
     }
 
     /**
