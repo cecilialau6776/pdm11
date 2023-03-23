@@ -89,6 +89,13 @@ public interface IApp {
     Collection[] get_collections();
 
     /**
+     * Gets all the collections the user has that have the specified name.
+     * @param name The name
+     * @return Array of collections
+     */
+    Collection[] get_collection_name(String name);
+
+    /**
      * Adds a game to a user's collection. Game and collection are confirmed
      * as valid prior to the call of the function.
      * @param collection The collection to add the game to
