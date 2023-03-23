@@ -573,6 +573,50 @@ public class CommandLineInterface{
                     }
                 }
 
+                case ADD_FRIEND -> {
+                    User[] user_list = app.search_friend(tokens[1]);
+
+                    if(user_list.length==0) {
+                        System.out.println("There no users linked to this email address");
+                        continue;
+                    }
+                    User selected_user = user_list[0];
+                    if(user_list.length > 1) {
+                        System.out.println("Which friend would you like to add (enter the number)?");
+                        for(int i = 0; i < user_list.length; ++i) {
+                            User curr_user = user_list[i];
+                            System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_user = user_list[input_to_int-1];
+                    }
+                    app.add_friend(selected_user);
+                    System.out.println(selected_user.username() + "added to your friend list");
+                }
+
+                case REMOVE_FRIEND -> {
+                    User[] user_list = app.check_friends(tokens[1]);
+
+                    if(user_list.length==0) {
+                        System.out.println("There are no friends linked to this email address");
+                        continue;
+                    }
+                    User selected_user = user_list[0];
+                    if(user_list.length > 1) {
+                        System.out.println("Which friend would you like to remove (enter the number)?");
+                        for(int i = 0; i < user_list.length; ++i) {
+                            User curr_user = user_list[i];
+                            System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_user = user_list[input_to_int-1];
+                    }
+                    app.delete_friend(selected_user);
+                    System.out.println(selected_user.username() + "removed from your friend list");
+                }
+
                 default -> {
                     System.out.println(ERR_MESSAGE);
                 }

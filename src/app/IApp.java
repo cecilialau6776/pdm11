@@ -220,4 +220,12 @@ public interface IApp {
      * @param friend The friend to remove
      */
     void delete_friend(User friend);
+
+    /**
+     * gets a list of your friends with a given email
+     * @param email list of user's with this email
+     * @return list of users with this email that are friends
+     */
+    User[] check_friends(String email);
+
 }
