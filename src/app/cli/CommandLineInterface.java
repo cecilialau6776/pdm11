@@ -24,13 +24,10 @@ public class CommandLineInterface{
     /** Exit message for when exit command is called */
     private final static String EXIT_MESSAGE = "Exiting command line interface";
 
-    /** Command to exit the application */
-    private final static String EXIT = "EXIT";
-
     /** Command to log in as a user */
     private final static String LOGIN = "LOGIN";
 
-    /** Command to log out as a user */
+    /** Command to log out as a user and exit */
     private final static String LOGOUT = "LOGOUT";
 
     /** Command to sign up as a user */
@@ -391,53 +388,135 @@ public class CommandLineInterface{
         Scanner in = new Scanner(System.in);
         boolean exit = false;
 
+        System.out.println("Please enter login or signup:");
+
+        do {
+            System.out.print(">\t");
+            String input = in.nextLine();
+            switch (input.toUpperCase()) {
+                case LOGIN -> {
+                    System.out.print("Username:\n>\t");
+                    String username = in.nextLine();
+                    System.out.print("Password:\n>\t");
+                    String password = in.nextLine();
+                    this.user = app.logIn(username, password);
+
+                }
+                case SIGNUP -> {
+                    System.out.print("Username:\n>\t");
+                    String username = in.nextLine();
+                    System.out.print("Password:\n>\t");
+                    String password = in.nextLine();
+                    System.out.print("Email:\n>\t");
+                    String email = in.nextLine();
+                    System.out.print("Firstname:\n>\t");
+                    String firstname = in.nextLine();
+                    System.out.print("Lastname:\n>\t");
+                    String lastname = in.nextLine();
+                    this.user = app.signUp(username, password, email, firstname, lastname);
+                }
+
+                default -> {
+                    System.out.println("Invalid input. Try again.");
+                }
+            }
+        } while (!app.isUserLoggedIn());
+
+        System.out.println("Welcome " + this.user.firstname() + "!");
+
         while(!exit){
-            System.out.print(PROMPT);
+            System.out.print(">\t");
             String input = in.nextLine();
             String[] tokens = input.strip().split("\\s+");
 
             switch(tokens[0].toUpperCase()){
-                case EXIT -> {
+                case LOGOUT -> {
+                    app.logOut();
                     System.out.println(EXIT_MESSAGE);
                     exit = true;
                 }
-                case LOGIN -> {
-                    this.user = app.logIn(tokens[1], tokens[2]);
-                    System.out.println(this.user);
-                }
-                case LOGOUT -> {
-                    app.logOut();
-                }
-                case SIGNUP -> {
-                    this.user = app.signUp(tokens[1], tokens[2], tokens[3], tokens[4], tokens[5]);
-                    System.out.println(this.user);
-                }
 
                 case GET_COLLECTIONS -> {
+                    if(!app.isUserLoggedIn()) {
+                        System.out.println("You are not logged in, please log in first.");
+                    }
+
+                    if(tokens.length != 1) {
+                        System.out.println("Usage: get_collections");
+                        continue;
+                    }
                     get_collections();
                 }
 
                 case COLLECTION_ADD -> {
+                    if(!app.isUserLoggedIn()) {
+                        System.out.println("You are not logged in, please log in first.");
+                    }
+
+                    if(tokens.length != 3) {
+                        System.out.println("Usage: collection_add collection-name game-name");
+                        continue;
+                    }
                     collection_add(tokens[1], tokens[2]);
                 }
 
                 case COLLECTION_REMOVE -> {
+                    if(!app.isUserLoggedIn()) {
+                        System.out.println("You are not logged in, please log in first.");
+                    }
+
+                    if(tokens.length != 3) {
+                        System.out.println("Usage: collection_remove collection-name game-name");
+                        continue;
+                    }
                     collection_remove(tokens[1], tokens[2]);
                 }
 
                 case COLLECTION_DELETE -> {
+                    if(!app.isUserLoggedIn()) {
+                        System.out.println("You are not logged in, please log in first.");
+                    }
+
+                    if(tokens.length != 2) {
+                        System.out.println("Usage: collection_delete collection-name");
+                        continue;
+                    }
                     collection_delete(tokens[1]);
                 }
 
                 case COLLECTION_RENAME -> {
+                    if(!app.isUserLoggedIn()) {
+                        System.out.println("You are not logged in, please log in first.");
+                    }
+
+                    if(tokens.length != 3) {
+                        System.out.println("Usage: collection_rename old-collection-name new-collection-name");
+                        continue;
+                    }
                     collection_rename(tokens[1], tokens[2]);
                 }
 
                 case COLLECTION_CREATE -> {
+                    if(!app.isUserLoggedIn()) {
+                        System.out.println("You are not logged in, please log in first.");
+                    }
+
+                    if(tokens.length != 2) {
+                        System.out.println("Usage: collection_create collection-name");
+                        continue;
+                    }
                     collection_create(tokens[1]);
                 }
 
                 case RATE -> {
+                    if(!app.isUserLoggedIn()) {
+                        System.out.println("You are not logged in, please log in first.");
+                    }
+
+                    if(tokens.length != 3) {
+                        System.out.println("Usage: rate game-name rating");
+                        continue;
+                    }
                     rate(tokens[1], tokens[2]);
                 }//add more cases
 
