@@ -317,17 +317,6 @@ public class App implements IApp {
     }
 
     /**
-     * Gets all the collections the user has that have the specified name.
-     *
-     * @param name The name
-     * @return Array of collections
-     */
-    @Override
-    public Collection[] get_collection_name(String name) {
-        return new Collection[0];
-    }
-
-    /**
      * Adds a game to a user's collection. Game and collection are confirmed
      * as valid prior to the call of the function.
      *
