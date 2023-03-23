@@ -63,6 +63,19 @@ public class CommandLineInterface {
     /** The app this CLI communicates with */
     private IApp app;
 
+    /** command to play a game */
+    private final static String PLAY = "PLAY";
+
+    /** command to search a friend */
+    private final static String SEARCH_FRIEND = "SEARCH_FRIEND";
+
+    /** command to add a friend */
+    private final static String ADD_FRIEND = "ADD_FRIEND";
+
+    /** command to remove a friend */
+    private final static String REMOVE_FRIEND = "REMOVE_FRIEND";
+
+
     /**
      * Constructs a CLI by creating the application it uses as a backend
      * @param cs_username Credentials for logging into starbug server
@@ -367,6 +380,49 @@ public class CommandLineInterface {
                     System.out.println("Successfully submitted rating.");
 
                 }//add more cases
+
+                case PLAY -> {
+                    Game[] game_list = app.search_game_name(tokens[1]);
+
+                    if(game_list.length == 0) {
+                        System.out.println("There is not a game with that name.");
+                        continue;
+                    }
+
+                    Game selected_game = game_list[0];
+                    if(game_list.length > 1) {
+                        System.out.println("Which game would you like to play (enter the number)?");
+                        for(int i = 0; i < game_list.length; ++i) {
+                            Game curr_game = game_list[i];
+                            System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
+                                    curr_game.playtime());
+                        }
+                        input = in.nextLine();
+                        int input_to_int = Integer.parseInt(input);
+                        selected_game = game_list[input_to_int-1];
+                    }
+                    Time run_time = new Time(Integer.parseInt(tokens[2]));
+                    app.play(selected_game,run_time);
+                }
+
+                case SEARCH_FRIEND -> {
+                    User[] user_list = app.search_friend(tokens[1]);
+
+                    if(user_list.length==0) {
+                        System.out.println("There no users linked to this email address");
+                        continue;
+                    }
+                    User selected_user = user_list[0];
+                    if(user_list.length > 1) {
+                        System.out.println("Here's all the Usernames associated with this email");
+                        for(int i = 0; i < user_list.length; ++i) {
+                            User curr_user = user_list[i];
+                            System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+                        }
+                    }
+                }
+
+
                 default -> {
                     System.out.println(ERR_MESSAGE);
                 }
