@@ -550,8 +550,8 @@ public class App implements IApp {
      * @return The user information if found, null if not
      */
     @Override
-    public User search_friend(String email) {
-        return null;
+    public User[] search_friend(String email) {
+        return new User[0];
     }
 
     /**
