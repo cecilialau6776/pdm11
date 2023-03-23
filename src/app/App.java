@@ -190,7 +190,7 @@ public class App implements IApp {
                 SELECT sum(time_played) FROM plays
                     JOIN game g on g.gid = plays.gid
                     JOIN game_collection gc on g.gid = gc.gid
-                    WHERE gc.collid = %d""", collection.collid());
+                    WHERE gc.collid = '%d'""", collection.collid());
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
@@ -243,7 +243,7 @@ public class App implements IApp {
      */
     @Override
     public Collection[] get_collections() {
-        String q = String.format("SELECT collid FROM collection WHERE coll_username = %s", currentUser.username());
+        String q = String.format("SELECT collid FROM collection WHERE coll_username = '%s'", currentUser.username());
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
@@ -265,8 +265,8 @@ public class App implements IApp {
      * @return The matching Collection
      */
     private Collection getCollection(int collid) {
-        String gamesQuery = String.format("SELECT gid from game_collection WHERE collid = %d", collid);
-        String collQuery = String.format("SELECT coll_username, coll_name FROM collection WHERE collid = %d", collid);
+        String gamesQuery = String.format("SELECT gid from game_collection WHERE collid = '%d'", collid);
+        String collQuery = String.format("SELECT coll_username, coll_name FROM collection WHERE collid = '%d'", collid);
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(collQuery);
@@ -300,7 +300,7 @@ public class App implements IApp {
     public Collection[] get_collection_name(String name) {
         String q = String.format("""
                     SELECT collid FROM collection
-                WHERE UPPER(coll_name) = UPPER(%s) AND coll_username = %s""", name, currentUser.username());
+                WHERE UPPER(coll_name) = UPPER('%s') AND coll_username = '%s'""", name, currentUser.username());
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(q);
@@ -572,7 +572,7 @@ public class App implements IApp {
         String query = String.format("""
                 SELECT star_rating FROM ratings
                     JOIN game g on ratings.gid = g.gid
-                    WHERE g.gid = %d""", gid);
+                    WHERE g.gid = '%d'""", gid);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -597,7 +597,7 @@ public class App implements IApp {
         String query = String.format("""
                 SELECT name FROM genre
                     JOIN game_genre g on genre.geid = g.geid
-                    WHERE g.gid = %d
+                    WHERE g.gid = '%d'
                 """, gid);
         try {
             Statement statement = conn.createStatement();
@@ -623,7 +623,7 @@ public class App implements IApp {
         String query = String.format("""
                 SELECT d.compid, "name" from company
                     LEFT JOIN publish p on company.compid = p.compid
-                    where p.gid = %d""", gid);
+                    where p.gid = '%d'""", gid);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -651,7 +651,7 @@ public class App implements IApp {
         String query = String.format("""
                 SELECT d.compid, "name" from company
                     LEFT JOIN develop d on company.compid = d.compid
-                    where d.gid = %d""", gid);
+                    where d.gid = '%d'""", gid);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -678,7 +678,7 @@ public class App implements IApp {
     private Time getTotalGamePlaytimeUser(int gid) {
         String q = String.format("""
                 SELECT sum(time_played) FROM plays
-                    WHERE gid = %d AND username = %s""", gid, currentUser.username());
+                    WHERE gid = '%d' AND username = '%s'""", gid, currentUser.username());
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
@@ -702,7 +702,7 @@ public class App implements IApp {
     private Time getTotalGamePlaytime(int gid) {
         String q = String.format("""
                 SELECT sum(time_played) FROM plays
-                    WHERE gid = %d""", gid);
+                    WHERE gid = '%d'""", gid);
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
@@ -726,7 +726,7 @@ public class App implements IApp {
     private Game getGame(int gid) {
         String query = String.format("""
                 SELECT title, esrb_rating from game
-                    WHERE gid = %d""", gid);
+                    WHERE gid = '%d'""", gid);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(query);
