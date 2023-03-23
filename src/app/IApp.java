@@ -2,6 +2,7 @@ package app;
 
 import app.model.Collection;
 import app.model.Game;
+import app.model.Platform;
 import app.model.User;
 
 import java.sql.Date;
@@ -45,6 +46,26 @@ public interface IApp {
     User logIn(String username, String password);
 
     /**
+     * Gets all the platforms of the user logged in.
+     * @return The list of platforms
+     */
+    Platform[] get_platforms();
+
+    /**
+     * Gets the platforms that the current game is on.
+     * @param game The game to access
+     * @return The platforms
+     */
+    Platform[] get_game_platforms(Game game);
+
+    /**
+     * Gets the total play time for all games in the collection.
+     * @param collection The collection
+     * @return Total play time
+     */
+    Time total_playtime_collection(Collection collection);
+
+    /**
      * Logs out the current user. If there is no user logged in than it does
      * nothing.
      */
@@ -68,6 +89,13 @@ public interface IApp {
     Collection[] get_collections();
 
     /**
+     * Gets all the collections the user has that have the specified name.
+     * @param name The name
+     * @return Array of collections
+     */
+    Collection[] get_collection_name(String name);
+
+    /**
      * Adds a game to a user's collection. Game and collection are confirmed
      * as valid prior to the call of the function.
      * @param collection The collection to add the game to
@@ -75,6 +103,15 @@ public interface IApp {
      * @return The updated collection
      */
     Collection collection_add(Collection collection, Game game);
+
+    /**
+     * Removes a game from a user's collection. Game and collection are confirmed
+     * as valid prior to the call of the function.
+     * @param collection The collection to remove the game from
+     * @param game The game to remove from the collection
+     * @return The updated collection
+     */
+    Collection collection_remove(Collection collection, Game game);
 
     /**
      * Deletes a collection from the user. Collection is confirmed as valid
