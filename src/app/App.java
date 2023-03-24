@@ -676,7 +676,16 @@ public class App implements IApp {
      */
     @Override
     public void add_friend(User friend) {
+        String q = String.format("""
+                    INSERT INTO friends (user, friend)
+                    VALUES ('%s', '%s')""", currentUser.username(), friend.username());
 
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(q);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -688,7 +697,16 @@ public class App implements IApp {
      */
     @Override
     public void delete_friend(User friend) {
+        String q = String.format("""
+                    DELETE FROM friends
+                    WHERE user = '%s' AND friend = '%s'""", currentUser.username(), friend.username());
 
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(q);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
