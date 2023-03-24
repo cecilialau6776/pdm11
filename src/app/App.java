@@ -6,6 +6,7 @@ import app.model.Collection;
 import com.jcraft.jsch.*;
 import org.postgresql.core.Query;
 
+import javax.xml.transform.Result;
 import java.sql.*;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -653,7 +654,15 @@ public class App implements IApp {
      */
     @Override
     public void play(Game game, Time time) {
-
+        Date current_date = new Date(new java.util.Date().getTime());
+        String query = String.format("INSERT INTO plays (username, gid, play_date, time_played) VALUES ('%s', %d, '%s', '%s')", currentUser.username(), game.gid(), current_date, time.toString());
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
     }
 
     /**
