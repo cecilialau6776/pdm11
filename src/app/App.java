@@ -885,17 +885,41 @@ public class App implements IApp {
      * @return date release as a Date
      */
     private Date getDateRelease(int gid){
-        return null;
+        String q = String.format("SELECT MIN(release_date) FROM game_platform WHERE gid = %d", gid);
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(q);
+            if (rs.next()) {
+                return rs.getDate("min");
+            } else {
+                return new Date(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
      * get the cheapest price for a game
      *
      * @param gid the game's id
-     * @return price of game as a double
+     * @return price of game as a double, -1 if not found or error.
      */
     private double getPrice(int gid){
-        return 0;
+        String q = String.format("SELECT MIN(price) FROM game_platform WHERE gid = %d", gid);
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(q);
+            if (rs.next()) {
+                return rs.getDouble("min");
+            } else {
+                return -1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 
 
