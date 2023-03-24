@@ -70,6 +70,34 @@ public class CommandLineInterface{
         System.out.println("Play time:\t" + app.total_playtime_collection(collection));
     }
 
+    private void printFullGame(Game game){
+        System.out.println("Name: " + game.title());
+        System.out.println("price: " + game.price());
+        System.out.println("playtime: " + game.playtime());
+
+        System.out.print("platforms: [ ");
+        Platform[] platforms = app.get_game_platforms(game);
+        for(int i = 0; i<platforms.length;i++){
+            System.out.print(platforms[i]+ " ");
+        }
+        System.out.println("]");
+
+        System.out.println("publisher: " + game.publisher());
+        System.out.println("developer: " + game.developer());
+        System.out.print("genres: [ ");
+        for(int i = 0; i<game.genres().length;i++){
+            System.out.print(game.genres()[i]+ " ");
+        }
+        System.out.println("]");
+        System.out.println("playtime: " + game.playtime());
+        System.out.print("ratings: [ ");
+        for(int i = 0; i<game.ratings().length;i++){
+            System.out.print(game.ratings()[i]+ " ");
+        }
+        System.out.println("]");
+
+    }
+
     private void get_collections() {
         Collection[] collections = app.get_collections();
         if(collections.length == 0) {
@@ -426,6 +454,7 @@ public class CommandLineInterface{
         String input;
 
         User[] user_list = app.search_users(coll_name);
+        User[] friends = app.search_friends();
 
         if (user_list.length == 0) {
             System.out.println("There no users linked to this email address");
@@ -448,8 +477,18 @@ public class CommandLineInterface{
                 } while (true);
                 selected_user = user_list[input_to_int - 1];
             }
-            app.add_friend(selected_user);
-            System.out.println(selected_user.username() + "added to your friend list");
+            boolean can_add = true;
+            for(int i = 0; i<friends.length;i++){
+                if(selected_user.equals(friends[i])){
+                    can_add = false;
+                }
+            }
+            if(can_add) {
+                app.add_friend(selected_user);
+                System.out.println(selected_user.username() + "added to your friend list");
+            } else {
+                System.out.println("This user is already a friend!");
+            }
         }
     }
     private void remove_friend(String coll_name) {
@@ -611,7 +650,7 @@ public class CommandLineInterface{
                 games_list.sort(default_comparator);
             }
             for(int i = 0; i < games_list.size(); i++) {
-                System.out.println(games_list.get(i));
+                printFullGame(games_list.get(i));
             }
         }
         else{
