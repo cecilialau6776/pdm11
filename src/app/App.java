@@ -164,7 +164,23 @@ public class App implements IApp {
      */
     @Override
     public Platform[] get_platforms() {
-        return null;
+        String query_format = "SELECT p.pid, p.name FROM owned_platform op join platform p on op.pid = p.pid"
+                            + "WHERE username = '%s'";
+        String query = String.format(query_format, currentUser.username());
+        try{
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            ArrayList<Platform> platforms = new ArrayList<>();
+            while(rs.next()){
+                int pid = rs.getInt("pid");
+                String name = rs.getString("name");
+                platforms.add(new Platform(pid, name));
+            }
+            return platforms.toArray(new Platform[platforms.size()]);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
