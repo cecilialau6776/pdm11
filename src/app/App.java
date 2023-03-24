@@ -409,7 +409,19 @@ public class App implements IApp {
      */
     @Override
     public Collection collection_rename(Collection collection, String new_name) {
-        return null;
+        String q = String.format("""
+                    UPDATE collection
+                    SET coll_name = '%s'
+                    WHERE coll_id = '%d'""", new_name, collection.collid());
+
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(q);
+            return getCollection(collection.collid());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
