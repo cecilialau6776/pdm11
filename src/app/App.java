@@ -167,19 +167,19 @@ public class App implements IApp {
     @Override
     public Platform[] get_platforms() {
         String query_format = "SELECT p.pid, p.name FROM owned_platform op join platform p on op.pid = p.pid"
-                            + "WHERE username = '%s'";
+                + "WHERE username = '%s'";
         String query = String.format(query_format, currentUser.username());
-        try{
+        try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
             ArrayList<Platform> platforms = new ArrayList<>();
-            while(rs.next()){
+            while (rs.next()) {
                 int pid = rs.getInt("pid");
                 String name = rs.getString("name");
                 platforms.add(new Platform(pid, name));
             }
             return platforms.toArray(new Platform[0]);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -197,17 +197,17 @@ public class App implements IApp {
                 SELECT platform.pid, "name" FROM platform
                     JOIN game_platform gp on platform.pid = gp.pid
                     WHERE gp.gid = %d""", game.gid());
-        try{
+        try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(q);
             ArrayList<Platform> platforms = new ArrayList<>();
-            while(rs.next()){
+            while (rs.next()) {
                 int pid = rs.getInt("pid");
                 String name = rs.getString("name");
                 platforms.add(new Platform(pid, name));
             }
             return platforms.toArray(new Platform[0]);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
@@ -362,8 +362,8 @@ public class App implements IApp {
     @Override
     public Collection collection_add(Collection collection, Game game) {
         String q = String.format("""
-                    INSERT INTO game_collection (coll_id, gid)
-                    VALUES ('%d', '%d')""", collection.collid(), game.gid());
+                INSERT INTO game_collection (coll_id, gid)
+                VALUES ('%d', '%d')""", collection.collid(), game.gid());
 
         try {
             Statement statement = conn.createStatement();
@@ -386,8 +386,8 @@ public class App implements IApp {
     @Override
     public Collection collection_remove(Collection collection, Game game) {
         String q = String.format("""
-                    DELETE FROM game_collection
-                    WHERE collid = '%d' AND gid = '%d'""", collection.collid(), game.gid());
+                DELETE FROM game_collection
+                WHERE collid = '%d' AND gid = '%d'""", collection.collid(), game.gid());
 
         try {
             Statement statement = conn.createStatement();
@@ -408,8 +408,8 @@ public class App implements IApp {
     @Override
     public void collection_delete(Collection collection) {
         String q = String.format("""
-                    DELETE FROM collection
-                    WHERE collid = '%d'""", collection.collid());
+                DELETE FROM collection
+                WHERE collid = '%d'""", collection.collid());
         try {
             Statement statement = conn.createStatement();
             statement.executeQuery(q);
@@ -429,9 +429,9 @@ public class App implements IApp {
     @Override
     public Collection collection_rename(Collection collection, String new_name) {
         String q = String.format("""
-                    UPDATE collection
-                    SET coll_name = '%s'
-                    WHERE coll_id = '%d'""", new_name, collection.collid());
+                UPDATE collection
+                SET coll_name = '%s'
+                WHERE coll_id = '%d'""", new_name, collection.collid());
 
         try {
             Statement statement = conn.createStatement();
@@ -462,7 +462,7 @@ public class App implements IApp {
             }
             Collection out = collections[0];
             for (Collection c : collections) {
-                   if (c.collid() > out.collid()) out = c;
+                if (c.collid() > out.collid()) out = c;
             }
             return out;
         } catch (SQLException e) {
@@ -480,7 +480,7 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_name(String name) {
-        String q = String.format("SELECT gid FROM game WHERE UPPER(title) = UPPER(%s)", name);
+        String q = String.format("SELECT gid FROM game WHERE UPPER(title) = UPPER('%s')", name);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(q);
@@ -673,7 +673,29 @@ public class App implements IApp {
      */
     @Override
     public User[] search_users(String email) {
-        return new User[0];
+        String query = String.format("SELECT * FROM \"user\" WHERE email = '%s'", email);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            ArrayList<User> users = new ArrayList<>();
+            while (rs.next()) {
+                String rs_username = rs.getString("username");
+                String rs_password = rs.getString("password");
+                String rs_email = rs.getString("email");
+                String rs_firstname = rs.getString("firstname");
+                String rs_lastname = rs.getString("lastname");
+                Date rs_creation_date = rs.getDate("creation_date");
+                Date rs_last_access_date = rs.getDate("last_access_date");
+                users.add(new User(rs_username, rs_password, rs_email,
+                        rs_firstname, rs_lastname, rs_last_access_date,
+                        rs_creation_date)
+                );
+            }
+            return users.toArray(new User[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -686,8 +708,8 @@ public class App implements IApp {
     @Override
     public void add_friend(User friend) {
         String q = String.format("""
-                    INSERT INTO friends (user, friend)
-                    VALUES ('%s', '%s')""", currentUser.username(), friend.username());
+                INSERT INTO friends (user, friend)
+                VALUES ('%s', '%s')""", currentUser.username(), friend.username());
 
         try {
             Statement statement = conn.createStatement();
@@ -707,8 +729,8 @@ public class App implements IApp {
     @Override
     public void delete_friend(User friend) {
         String q = String.format("""
-                    DELETE FROM friends
-                    WHERE user = '%s' AND friend = '%s'""", currentUser.username(), friend.username());
+                DELETE FROM friends
+                WHERE user = '%s' AND friend = '%s'""", currentUser.username(), friend.username());
 
         try {
             Statement statement = conn.createStatement();
@@ -718,8 +740,41 @@ public class App implements IApp {
         }
     }
 
-    public User[] search_friends(){
-        return new User[0];
+    public User[] search_friends() {
+        String query = String.format("SELECT friend FROM friends WHERE \"user\" = '%s'", currentUser.username());
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            ArrayList<User> users = new ArrayList<>();
+            while (rs.next()) {
+                users.add(getUser(rs.getString("friend")));
+            }
+            return users.toArray(new User[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private User getUser(String username) {
+        String query = String.format("SELECT * FROM \"user\" WHERE username = '%s'", username);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            String rs_username = rs.getString("username");
+            String rs_password = rs.getString("password");
+            String rs_email = rs.getString("email");
+            String rs_firstname = rs.getString("firstname");
+            String rs_lastname = rs.getString("lastname");
+            Date rs_creation_date = rs.getDate("creation_date");
+            Date rs_last_access_date = rs.getDate("last_access_date");
+            return new User(rs_username, rs_password, rs_email,
+                    rs_firstname, rs_lastname, rs_last_access_date,
+                    rs_creation_date);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 
@@ -884,7 +939,7 @@ public class App implements IApp {
      * @param gid the game's id
      * @return date release as a Date
      */
-    private Date getDateRelease(int gid){
+    private Date getDateRelease(int gid) {
         String q = String.format("SELECT MIN(release_date) FROM game_platform WHERE gid = %d", gid);
         try {
             Statement s = conn.createStatement();
@@ -906,7 +961,7 @@ public class App implements IApp {
      * @param gid the game's id
      * @return price of game as a double, -1 if not found or error.
      */
-    private double getPrice(int gid){
+    private double getPrice(int gid) {
         String q = String.format("SELECT MIN(price) FROM game_platform WHERE gid = %d", gid);
         try {
             Statement s = conn.createStatement();
@@ -946,7 +1001,7 @@ public class App implements IApp {
                 Time playtime = getTotalGamePlaytimeUser(gid);
                 Date dateRelease = getDateRelease(gid);
                 double price = getPrice(gid);
-                return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime,dateRelease,price);
+                return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime, dateRelease, price);
             } else {
                 System.out.println("No game found");
                 return null;
