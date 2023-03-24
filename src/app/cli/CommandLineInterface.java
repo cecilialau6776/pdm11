@@ -23,7 +23,7 @@ public class CommandLineInterface{
     private final static String PROMPT = "pdm320_11 interface> ";
 
     /** Error message for unrecognized command */
-    private final static String ERR_MESSAGE = "Unrecognized command, please try again";
+    private final static String ERR_MESSAGE = "Unrecognized command, Type \"help\" to get list of commands";
 
     /** Exit message for when exit command is called */
     private final static String EXIT_MESSAGE = "Exiting command line interface";
@@ -378,7 +378,7 @@ public class CommandLineInterface{
     private final static String PLAY = "PLAY";
 
     /** command to search a friend */
-    private final static String SEARCH_FRIEND = "SEARCH_FRIEND";
+    private final static String SEARCH_USER = "SEARCH_FRIEND";
 
     /** command to add a friend */
     private final static String ADD_FRIEND = "ADD_FRIEND";
@@ -388,6 +388,8 @@ public class CommandLineInterface{
 
     /** command to search for a list of games */
     private final static String SEARCH_GAME = "SEARCH_GAME";
+    /** command to see list of usable commands */
+    private final static String HELP = "HELP";
 
     /**
      * Constructs a CLI by creating the application it uses as a backend
@@ -570,10 +572,10 @@ public class CommandLineInterface{
                     app.play(selected_game,run_time);
                 }
 
-                case SEARCH_FRIEND -> {
+                case SEARCH_USER -> {
                     if(tokens.length <2){
                         System.out.println("\nUsage:");
-                        System.out.println("SEARCH_FRIEND { email }");
+                        System.out.println("SEARCH_USER { email }");
                         System.out.println("email           email that the account is associated with to be searched\n");
                         continue;
                     }
@@ -661,7 +663,6 @@ public class CommandLineInterface{
                 }
 
                 case SEARCH_GAME -> {
-                    System.out.println(tokens.length);
                     if(tokens.length<3){
                         System.out.println("\nUsage: ");
                         System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
@@ -807,6 +808,26 @@ public class CommandLineInterface{
                     for(int i = 0; i < games_list.size(); i++) {
                         System.out.println(games_list.get(i));
                     }
+                }
+                case HELP  -> {
+                    System.out.println("\nFor a more in depth usage of each command, Enter the command with no arguments\n");  //Not universal true, will be changed based on feedback
+                    System.out.println("\nCOMMAND                 DESCRIPTION\n");
+                    System.out.println("login                   login to user account");
+                    System.out.println("logout                  logout of user that is logged in right now");
+                    System.out.println("signup                  creates a new user account in database");
+                    System.out.println("get_collections         get owned user's collections");     //will not send usage with 0 arguments
+                    System.out.println("collection_add          add game to a owned collection");
+                    System.out.println("collection_remove       remove game from collection");
+                    System.out.println("collection_rename       rename a owned collection");
+                    System.out.println("collection_delete       delete a owned collection");
+                    System.out.println("collection_create       create new collection");
+                    System.out.println("rate                    rate a game from 1-5");
+                    System.out.println("play                    play a game by {millisecond} amount");
+                    System.out.println("search_user             get a list of users owned by a given email");
+                    System.out.println("add_friend              add a user as a friend with provided email");
+                    System.out.println("remove_friend           remove user from friends with provided email");
+                    System.out.println("search_game             search a list of games based on value given");
+                    System.out.println("\nFor a more in depth usage of each command, Enter the command with no arguments\n");
                 }
 
                 default -> {
