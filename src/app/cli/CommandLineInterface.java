@@ -491,6 +491,141 @@ public class CommandLineInterface{
         }
 
     }
+    private void search_game_usage(){
+        System.out.println("\nUsage: ");
+        System.out.println("SEARCH_GAME { search_val | search_type } | sort_val | descend }");
+        System.out.println("search_val      value being searched");
+        System.out.println("search_type     type that the being search is, below are acceptable inputs");
+        System.out.println("                {title},{platform},{date},{developer},{price},{genre}");
+        System.out.println("sort_val        optional argument to sort the results by, below are acceptable inputs");
+        System.out.println("                {title},{price},{genre},{developer},{date}");
+        System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
+    }
+    private void search_game(String search_val, String search_type, String sort_val, String descend) {
+
+        ArrayList<Game> games_list = new ArrayList<>();
+        boolean correct_format = true;
+        if (search_type.equals("title")) {
+            Game[] game_array = app.search_game_name(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("platform")) {
+            Game[] game_array = app.search_game_platform(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("date")) {
+            Date release_date = new Date(Long.parseLong(search_val));
+            Game[] game_array = app.search_game_release_date(release_date);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("developer")) {
+            Game[] game_array = app.search_game_developer(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("price")) {
+            Game[] game_array = app.search_game_price(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("genre")) {
+            Game[] game_array = app.search_game_genre(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else{
+            correct_format = false;
+        }
+        if(correct_format){
+            Comparator<Game> default_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    int result = o1.title().compareTo(o2.title());
+                    if(result == 0){
+                        return o1.date_release().compareTo(o2.date_release());
+                    } else {
+                        return result;
+                    }
+                }
+            };
+            Comparator<Game> title_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    return o2.title().compareTo(o1.title());
+                }
+            };
+            Comparator<Game> price_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    int result;
+                    if (o2.price() - o1.price() > 0)
+                        result = 1;
+                    else {
+                        result = -1;
+                    }
+                    return result;
+                }
+            };
+            Comparator<Game> release_date_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    return o1.date_release().compareTo(o2.date_release());
+                }
+            };
+
+            // Temp Genre_comparator, will need to be changed when merged when genre is arrayed
+            Comparator<Game> genre_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    int result = 0;
+                    int o1_genres = o1.genres().length;
+                    int o2_genres = o2.genres().length;
+                    for(int i = 0; (i<o1_genres) && (i<o2_genres);i++){
+                        result = o1.genres()[i].compareTo(o2.genres()[i]);
+                        if(result != 0){
+                            return result;
+                        }
+                    }
+                    return result;
+                }
+            };
+            if (sort_val.equals("default")) {
+                games_list.sort(default_comparator);
+            } else if (sort_val.equals("title")) {
+                if (descend.equals("D")) {
+                    games_list.sort(title_comparator.reversed());
+                } else {
+                    games_list.sort(title_comparator);
+                }
+            } else if (sort_val.equals("price")) {
+                if (descend.equals("D")) {
+                    games_list.sort(price_comparator.reversed());
+                } else {
+                    games_list.sort(price_comparator);
+                }
+            } else if (sort_val.equals("genre")) {
+                if (descend.equals("D")) {
+                    games_list.sort(genre_comparator.reversed());
+                } else {
+                    games_list.sort(genre_comparator);
+                }
+            } else if (sort_val.equals("date")) {
+                if (descend.equals("D")) {
+                    games_list.sort(release_date_comparator.reversed());
+                } else {
+                    games_list.sort(release_date_comparator);
+                }
+            } else {
+                System.out.println("Unknown sort argument: default sort used");
+                games_list.sort(default_comparator);
+            }
+            for(int i = 0; i < games_list.size(); i++) {
+                System.out.println(games_list.get(i));
+            }
+        }
+        else{
+            search_game_usage();
+        }
+    }
+    private void search_game(String search_val, String search_type, String sort_val){
+        search_game(search_val,search_type,sort_val,"A");
+    }
+    private void search_game(String search_val, String search_type){
+        search_game(search_val,search_type,"default","A");
+    }
+
+
 
 
     /** command to play a game */
@@ -703,151 +838,17 @@ public class CommandLineInterface{
 
                 case SEARCH_GAME -> {
                     if(tokens.length<3){
-                        System.out.println("\nUsage: ");
-                        System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
-                        System.out.println("search_val      value being searched");
-                        System.out.println("search_type     type that the being search is, below are acceptable inputs");
-                        System.out.println("                {title},{platform},{date},{developer},{price},{genre}");
-                        System.out.println("sort_val        optional argument to sort the results by, below are acceptable inputs");
-                        System.out.println("                {title},{price},{genre},{developer},{date}");
-                        System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
-                        continue;
+                        search_game_usage();
                     }
-                    ArrayList<Game> games_list= new ArrayList<>();
-                    if(tokens[2].equals("title")){
-                        Game[] game_array = app.search_game_name(tokens[1]);
-                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
-                    }
-                    else if (tokens[2].equals("platform")){
-                        Game[] game_array = app.search_game_platform(tokens[1]);
-                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
-                    }
-                    else if (tokens[2].equals("date")){
-                        Date release_date = new Date(Long.parseLong(tokens[1]));
-                        Game[] game_array = app.search_game_release_date(release_date);
-                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
-                    }
-                    else if (tokens[2].equals("developer")){
-                        Game[] game_array = app.search_game_developer(tokens[1]);
-                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
-                    }
-                    else if (tokens[2].equals("price")){
-                        Game[] game_array = app.search_game_price(tokens[1]);
-                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
-
-                    }
-                    else if (tokens[2].equals("genre")){
-                        Game[] game_array = app.search_game_genre(tokens[1]);
-                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
-                    }
-                    else {
-                        System.out.println("\nUsage: ");
-                        System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
-                        System.out.println("search_val      value being searched");
-                        System.out.println("search_type     type that the being search is, below are acceptable inputs");
-                        System.out.println("                {title},{platform},{date},{developer},{price},{genre}");
-                        System.out.println("sort_val        optional argument to sort the results by, below are acceptable inputs");
-                        System.out.println("                {title},{price},{genre},{developer},{date}");
-                        System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
-                        continue;
-                    }
-                    Comparator<Game> default_comparator = new Comparator<Game>() {
-                        @Override
-                        public int compare(Game o1, Game o2) {
-                            int result = o1.title().compareTo(o2.title());
-                            if(result == 0){
-                                return o1.date_release().compareTo(o2.date_release());
-                            } else {
-                                return result;
-                            }
-                        }
-                    };
-                    Comparator<Game> title_comparator = new Comparator<Game>() {
-                        @Override
-                        public int compare(Game o1, Game o2) {
-                            int result;
-                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
-                                result = o2.title().compareTo(o1.title());
-                            }
-                            else{
-                                result = o1.title().compareTo(o2.title());
-                            }
-                                return result;
-                            }
-                        };
-                    Comparator<Game> price_comparator = new Comparator<Game>() {
-                        @Override
-                        public int compare(Game o1, Game o2) {
-                            int result;
-                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
-                                if(o2.price() - o1.price()>0)
-                                    result = -1;
-                                else{
-                                    result = 1;
-                                }
-                            }
-                            else{
-                                if(o2.price() - o1.price()>0)
-                                    result = 1;
-                                else{
-                                    result = -1;
-                                }
-                            }
-                            return result;
-                        }
-                    };
-                    Comparator<Game> release_date_comparator = new Comparator<Game>() {
-                        @Override
-                        public int compare(Game o1, Game o2) {
-                            int result;
-                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
-                                result = o2.date_release().compareTo(o1.date_release());
-                            }
-                            else{
-                                result = o1.date_release().compareTo(o2.date_release());
-                            }
-                            return result;
-                        }
-                    };
-
-                    // Temp Genre_comparator, will need to be changed when merged when genre is arrayed
-                    Comparator<Game> genre_comparator = new Comparator<Game>() {
-                        @Override
-                        public int compare(Game o1, Game o2) {
-                            int result;
-                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
-                                result = o2.genres()[0].compareTo(o1.genres()[0]);
-                            }
-                            else{
-                                result = o1.genres()[0].compareTo(o2.genres()[0]);
-                            }
-                            return result;
-                        }
-                    };
-                    if(tokens.length==3){
-                        games_list.sort(default_comparator);
-                    }
-                    else if(tokens.length>3){
-                        if(tokens[3].equals("title")){
-                            games_list.sort(title_comparator);
-                        } else if (tokens[3].equals("price")) {
-                            games_list.sort(price_comparator);
-                        } else if (tokens[3].equals("genre")){
-                            games_list.sort(genre_comparator);
-                        }
-                        else if (tokens[3].equals("date")){
-                            games_list.sort(release_date_comparator);
-                        }
-                        else {
-                            System.out.println("Unknown sort argument: default sort used");
-                            games_list.sort(default_comparator);
-                        }
-                    }
-
-                    for(int i = 0; i < games_list.size(); i++) {
-                        System.out.println(games_list.get(i));
+                    else if (tokens.length==3){
+                        search_game(tokens[1],tokens[2]);
+                    } else if (tokens.length==4){
+                        search_game(tokens[1],tokens[2],tokens[3]);
+                    } else if (tokens.length==5){
+                        search_game(tokens[1],tokens[2],tokens[3],tokens[4]);
                     }
                 }
+
                 case HELP  -> {
                     System.out.println("\nFor a more in depth usage of each command, Enter the command with no arguments\n");  //Not universal true, will be changed based on feedback
                     System.out.println("\nCOMMAND                 DESCRIPTION\n");
