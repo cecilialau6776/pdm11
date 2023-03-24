@@ -540,6 +540,13 @@ public class CommandLineInterface{
                 }//add more cases
 
                 case PLAY -> {
+                    if(tokens.length <3){
+                        System.out.println("\nUsage:");
+                        System.out.println("PLAY { game | time }");
+                        System.out.println("game            game to be played");
+                        System.out.println("time            time in milliseconds to be added\n"); //Might change later to a more useful format that milliseconds
+                        continue;
+                    }
                     Game[] game_list = app.search_game_name(tokens[1]);
 
                     if(game_list.length == 0) {
@@ -564,13 +571,18 @@ public class CommandLineInterface{
                 }
 
                 case SEARCH_FRIEND -> {
+                    if(tokens.length <2){
+                        System.out.println("\nUsage:");
+                        System.out.println("SEARCH_FRIEND { email }");
+                        System.out.println("email           email that the account is associated with to be searched\n");
+                        continue;
+                    }
                     User[] user_list = app.search_users(tokens[1]);
 
                     if(user_list.length==0) {
                         System.out.println("There no users linked to this email address");
                         continue;
                     }
-                    User selected_user = user_list[0];
                     if(user_list.length > 1) {
                         System.out.println("Here's all the Usernames associated with this email");
                         for(int i = 0; i < user_list.length; ++i) {
@@ -581,6 +593,12 @@ public class CommandLineInterface{
                 }
 
                 case ADD_FRIEND -> {
+                    if(tokens.length <2){
+                        System.out.println("\nUsage:");
+                        System.out.println("ADD_FRIEND { email }");
+                        System.out.println("email           email that the account is associated with to be added\n");
+                        continue;
+                    }
                     User[] user_list = app.search_users(tokens[1]);
 
                     if(user_list.length==0) {
@@ -603,6 +621,12 @@ public class CommandLineInterface{
                 }
 
                 case REMOVE_FRIEND -> {
+                    if(tokens.length <2){
+                        System.out.println("\nUsage:");
+                        System.out.println("REMOVE_FRIEND { email }");
+                        System.out.println("email           email that the account is associated with to be removed\n");
+                        continue;
+                    }
                     User[] user_list = app.search_friends();
 
                     if(user_list.length==0) {
@@ -635,38 +659,58 @@ public class CommandLineInterface{
                     app.delete_friend(selected_user);
                     System.out.println(selected_user.username() + "removed from your friend list");
                 }
+
                 case SEARCH_GAME -> {
-                    if(tokens.length<2){
-                        System.out.println("Error");
+                    System.out.println(tokens.length);
+                    if(tokens.length<3){
+                        System.out.println("\nUsage: ");
+                        System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
+                        System.out.println("search_val      value being searched");
+                        System.out.println("search_type     type that the being search is, below are acceptable inputs");
+                        System.out.println("                {title},{platform},{date},{developer},{price},{genre}");
+                        System.out.println("sort_val        optional argument to sort the results by, below are acceptable inputs");
+                        System.out.println("                {title},{price},{genre},{developer},{date}");
+                        System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
                         continue;
                     }
-                    Game[] game_list = new Game[0];
-                    if(tokens[2].equals("name")){
-                        game_list = app.search_game_name(tokens[1]);
+                    ArrayList<Game> games_list= new ArrayList<>();
+                    if(tokens[2].equals("title")){
+                        Game[] game_array = app.search_game_name(tokens[1]);
+                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
                     }
                     else if (tokens[2].equals("platform")){
-                        game_list = app.search_game_platform(tokens[1]);
+                        Game[] game_array = app.search_game_platform(tokens[1]);
+                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
                     }
                     else if (tokens[2].equals("date")){
                         Date release_date = new Date(Long.parseLong(tokens[1]));
-                        game_list = app.search_game_release_date(release_date);
+                        Game[] game_array = app.search_game_release_date(release_date);
+                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
                     }
                     else if (tokens[2].equals("developer")){
-                        game_list = app.search_game_developer(tokens[1]);
-
+                        Game[] game_array = app.search_game_developer(tokens[1]);
+                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
                     }
                     else if (tokens[2].equals("price")){
-                        game_list = app.search_game_price(tokens[1]);
+                        Game[] game_array = app.search_game_price(tokens[1]);
+                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
 
                     }
                     else if (tokens[2].equals("genre")){
-                        game_list = app.search_game_genre(tokens[1]);
+                        Game[] game_array = app.search_game_genre(tokens[1]);
+                        games_list = new ArrayList<>(Arrays.stream(game_array).toList());
                     }
                     else {
-                        System.out.println("invalid search type, search by \" name\", \"platform\"," +
-                                "\"date\", \"developer\", \"price\", \"genre\"");
+                        System.out.println("\nUsage: ");
+                        System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
+                        System.out.println("search_val      value being searched");
+                        System.out.println("search_type     type that the being search is, below are acceptable inputs");
+                        System.out.println("                {title},{platform},{date},{developer},{price},{genre}");
+                        System.out.println("sort_val        optional argument to sort the results by, below are acceptable inputs");
+                        System.out.println("                {title},{price},{genre},{developer},{date}");
+                        System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
+                        continue;
                     }
-                    ArrayList<Game> games = new ArrayList<>(Arrays.stream(game_list).toList());
                     Comparator<Game> default_comparator = new Comparator<Game>() {
                         @Override
                         public int compare(Game o1, Game o2) {
@@ -708,7 +752,6 @@ public class CommandLineInterface{
                                 else{
                                     result = -1;
                                 }
-                                result = o1.title().compareTo(o2.title());
                             }
                             return result;
                         }
@@ -726,6 +769,7 @@ public class CommandLineInterface{
                             return result;
                         }
                     };
+
                     // Temp Genre_comparator, will need to be changed when merged when genre is arrayed
                     Comparator<Game> genre_comparator = new Comparator<Game>() {
                         @Override
@@ -740,28 +784,28 @@ public class CommandLineInterface{
                             return result;
                         }
                     };
-                    if(tokens.length==2){
-                        games.sort(default_comparator);
+                    if(tokens.length==3){
+                        games_list.sort(default_comparator);
                     }
-                    else if(tokens.length>2){
+                    else if(tokens.length>3){
                         if(tokens[3].equals("title")){
-                            games.sort(title_comparator);
+                            games_list.sort(title_comparator);
                         } else if (tokens[3].equals("price")) {
-                            games.sort(price_comparator);
+                            games_list.sort(price_comparator);
                         } else if (tokens[3].equals("genre")){
-                            games.sort(genre_comparator);
+                            games_list.sort(genre_comparator);
                         }
-                        else if (tokens.equals("date")){
-                            games.sort(release_date_comparator);
+                        else if (tokens[3].equals("date")){
+                            games_list.sort(release_date_comparator);
                         }
                         else {
-                            System.out.println("Unknown sort argument: Default sort used");
-                            games.sort(default_comparator);
+                            System.out.println("Unknown sort argument: default sort used");
+                            games_list.sort(default_comparator);
                         }
                     }
 
-                    for(int i = 0; i < games.size(); i++) {
-                        System.out.println(games.get(i));
+                    for(int i = 0; i < games_list.size(); i++) {
+                        System.out.println(games_list.get(i));
                     }
                 }
 
