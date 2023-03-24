@@ -4,6 +4,7 @@ import app.cli.CommandLineInterface;
 import app.model.*;
 import app.model.Collection;
 import com.jcraft.jsch.*;
+import org.postgresql.core.Query;
 
 import java.sql.*;
 import java.sql.Date;
@@ -176,7 +177,7 @@ public class App implements IApp {
                 String name = rs.getString("name");
                 platforms.add(new Platform(pid, name));
             }
-            return platforms.toArray(new Platform[platforms.size()]);
+            return platforms.toArray(new Platform[0]);
         } catch(Exception e) {
             e.printStackTrace();
             return null;
@@ -184,14 +185,31 @@ public class App implements IApp {
     }
 
     /**
-     * Gets the platform that the current game is on.
+     * Gets the platforms that the current game is on.
      *
      * @param game The game to access
-     * @return The platform
+     * @return The platforms
      */
     @Override
     public Platform[] get_game_platforms(Game game) {
-        return null;
+        String q = String.format("""
+                SELECT platform.pid, "name" FROM platform
+                    JOIN game_platform gp on platform.pid = gp.pid
+                    WHERE gp.gid = %d""", game.gid());
+        try{
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(q);
+            ArrayList<Platform> platforms = new ArrayList<>();
+            while(rs.next()){
+                int pid = rs.getInt("pid");
+                String name = rs.getString("name");
+                platforms.add(new Platform(pid, name));
+            }
+            return platforms.toArray(new Platform[0]);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -432,7 +450,24 @@ public class App implements IApp {
      */
     @Override
     public Collection collection_create(String name) {
-        return null;
+        String q = String.format("INSERT INTO collection (coll_username, coll_name) VALUES ('%s', '%s')", currentUser.username(), name);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(q);
+            Collection[] collections = get_collection_name(name);
+            if (collections.length == 0) {
+                System.out.println("Creation of collection failed");
+                return null;
+            }
+            Collection out = collections[0];
+            for (Collection c : collections) {
+                   if (c.collid() > out.collid()) out = c;
+            }
+            return out;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -466,8 +501,20 @@ public class App implements IApp {
      * @return Array of games of the certain price
      */
     @Override
-    public Game[] search_game_price(String price) {
-        return new Game[0];
+    public Game[] search_game_price(double price) {
+        String query = String.format("SELECT gid FROM game_platform WHERE price = %.2f", price);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            ArrayList<Game> games = new ArrayList<>();
+            while (rs.next()) {
+                games.add(getGame(rs.getInt("gid")));
+            }
+            return games.toArray(new Game[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -504,7 +551,19 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_release_date(Date release_date) {
-        return new Game[0];
+        String query = String.format("SELECT gid FROM game_platform WHERE release_date = '%s'", release_date.toString());
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            ArrayList<Game> games = new ArrayList<>();
+            while (rs.next()) {
+                games.add(getGame(rs.getInt("gid")));
+            }
+            return games.toArray(new Game[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -569,7 +628,19 @@ public class App implements IApp {
      */
     @Override
     public Game rate(Game game, int rating) {
-        return null;
+        if (!(rating >= 0 && rating <= 5)) {
+            System.out.println("Rating must be in range 0-5 inclusive.");
+            return null;
+        }
+        String query = String.format("INSERT INTO ratings (username, gid, star_rating) VALUES('mbooymk', %d, %d)", game.gid(), rating);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            return getGame(game.gid());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**

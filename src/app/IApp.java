@@ -149,7 +149,7 @@ public interface IApp {
      * @param price The price of the game
      * @return Array of games of the certain price
      */
-    Game[] search_game_price(String price);
+    Game[] search_game_price(double price);
 
     /**
      * Searches the database for games on a specified platform.
