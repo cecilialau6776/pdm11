@@ -550,7 +550,7 @@ public class App implements IApp {
      * @return The user information if found, null if not
      */
     @Override
-    public User[] search_friend(String email) {
+    public User[] search_users(String email) {
         return new User[0];
     }
 
@@ -577,6 +577,11 @@ public class App implements IApp {
     public void delete_friend(User friend) {
 
     }
+
+    public User[] search_friends(){
+        return new User[0];
+    }
+
 
     /**
      * Gets a list of the game's ratings

@@ -203,7 +203,7 @@ public interface IApp {
      * @param email The user's email
      * @return The user information if found, null if not
      */
-    User[] search_friend(String email);
+    User[] search_users(String email);
 
     /**
      * Adds a user as a friend. Friend to be added is assumed
@@ -222,10 +222,9 @@ public interface IApp {
     void delete_friend(User friend);
 
     /**
-     * gets a list of your friends with a given email
-     * @param email list of user's with this email
+     * gets a list of your friends
      * @return list of users with this email that are friends
      */
-    User[] check_friends(String email);
+    User[] search_friends();
 
 }
