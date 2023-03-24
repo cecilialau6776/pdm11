@@ -1,6 +1,7 @@
 package app.model;
 
 import java.sql.Time;
+import java.sql.Date;
 
 /**
  * Record to store a Game
@@ -21,6 +22,9 @@ public record Game(
         String genre,
         Company developer,
         Company publisher,
-        Time playtime
+        Time playtime,
+        Date date_release,
+        double price
+
 ) {
 }

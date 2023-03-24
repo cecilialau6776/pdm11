@@ -2,7 +2,11 @@ package app.cli;
 
 import java.sql.Array;
 import java.sql.Time;
-import java.util.*;
+import java.sql.Date;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Scanner;
+import java.util.ArrayList;
 
 import app.IApp;
 import app.model.Collection;
@@ -75,6 +79,8 @@ public class CommandLineInterface {
     /** command to remove a friend */
     private final static String REMOVE_FRIEND = "REMOVE_FRIEND";
 
+    /** command to search for a list of games */
+    private final static String SEARCH_GAME = "SEARCH_GAME";
 
     /**
      * Constructs a CLI by creating the application it uses as a backend
@@ -406,7 +412,7 @@ public class CommandLineInterface {
                 }
 
                 case SEARCH_FRIEND -> {
-                    User[] user_list = app.search_friend(tokens[1]);
+                    User[] user_list = app.search_users(tokens[1]);
 
                     if(user_list.length==0) {
                         System.out.println("There no users linked to this email address");
@@ -423,7 +429,7 @@ public class CommandLineInterface {
                 }
 
                 case ADD_FRIEND -> {
-                    User[] user_list = app.search_friend(tokens[1]);
+                    User[] user_list = app.search_users(tokens[1]);
 
                     if(user_list.length==0) {
                         System.out.println("There no users linked to this email address");
@@ -445,27 +451,167 @@ public class CommandLineInterface {
                 }
 
                 case REMOVE_FRIEND -> {
-                    User[] user_list = app.check_friends(tokens[1]);
+                    User[] user_list = app.search_friends();
 
                     if(user_list.length==0) {
                         System.out.println("There are no friends linked to this email address");
                         continue;
                     }
-                    User selected_user = user_list[0];
-                    if(user_list.length > 1) {
+
+                    ArrayList<User> searched_users = new ArrayList<>();
+                    for(int i = 0; i < user_list.length; i++){
+                        String curr_user_email = user_list[i].email();
+                        if(curr_user_email.equals(tokens[1])){
+                            searched_users.add(user_list[i]);
+                        }
+                    }
+                    if(searched_users.size()==0) {
+                        System.out.println("There are no friends linked to this email address");
+                        continue;
+                    }
+                    User selected_user = searched_users.get(0);
+                    if(searched_users.size() > 1) {
                         System.out.println("Which friend would you like to remove (enter the number)?");
-                        for(int i = 0; i < user_list.length; ++i) {
-                            User curr_user = user_list[i];
+                        for(int i = 0; i < searched_users.size(); ++i) {
+                            User curr_user = searched_users.get(i);
                             System.out.println(i+1 + ".\tUsername: " + curr_user.username());
                         }
                         input = in.nextLine();
                         int input_to_int = Integer.parseInt(input);
-                        selected_user = user_list[input_to_int-1];
+                        selected_user = searched_users.get(input_to_int);
                     }
                     app.delete_friend(selected_user);
                     System.out.println(selected_user.username() + "removed from your friend list");
                 }
+                case SEARCH_GAME -> {
+                    if(tokens.length<2){
+                        System.out.println("Error");
+                        continue;
+                    }
+                    Game[] game_list = new Game[0];
+                    if(tokens[2].equals("name")){
+                        game_list = app.search_game_name(tokens[1]);
+                    }
+                    else if (tokens[2].equals("platform")){
+                        game_list = app.search_game_platform(tokens[1]);
+                    }
+                    else if (tokens[2].equals("date")){
+                        Date release_date = new Date(Long.parseLong(tokens[1]));
+                        game_list = app.search_game_release_date(release_date);
+                    }
+                    else if (tokens[2].equals("developer")){
+                        game_list = app.search_game_developer(tokens[1]);
 
+                    }
+                    else if (tokens[2].equals("price")){
+                        game_list = app.search_game_price(tokens[1]);
+
+                    }
+                    else if (tokens[2].equals("genre")){
+                        game_list = app.search_game_genre(tokens[1]);
+                    }
+                    else {
+                        System.out.println("invalid search type, search by \" name\", \"platform\"," +
+                                "\"date\", \"developer\", \"price\", \"genre\"");
+                    }
+                    ArrayList<Game> games = new ArrayList<>(Arrays.stream(game_list).toList());
+                    Comparator<Game> default_comparator = new Comparator<Game>() {
+                        @Override
+                        public int compare(Game o1, Game o2) {
+                            int result = o1.title().compareTo(o2.title());
+                            if(result == 0){
+                                return o1.date_release().compareTo(o2.date_release());
+                            } else {
+                                return result;
+                            }
+                        }
+                    };
+                    Comparator<Game> title_comparator = new Comparator<Game>() {
+                        @Override
+                        public int compare(Game o1, Game o2) {
+                            int result;
+                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
+                                result = o2.title().compareTo(o1.title());
+                            }
+                            else{
+                                result = o1.title().compareTo(o2.title());
+                            }
+                                return result;
+                            }
+                        };
+                    Comparator<Game> price_comparator = new Comparator<Game>() {
+                        @Override
+                        public int compare(Game o1, Game o2) {
+                            int result;
+                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
+                                if(o2.price() - o1.price()>0)
+                                    result = -1;
+                                else{
+                                    result = 1;
+                                }
+                            }
+                            else{
+                                if(o2.price() - o1.price()>0)
+                                    result = 1;
+                                else{
+                                    result = -1;
+                                }
+                                result = o1.title().compareTo(o2.title());
+                            }
+                            return result;
+                        }
+                    };
+                    Comparator<Game> release_date_comparator = new Comparator<Game>() {
+                        @Override
+                        public int compare(Game o1, Game o2) {
+                            int result;
+                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
+                                result = o2.date_release().compareTo(o1.date_release());
+                            }
+                            else{
+                                result = o1.date_release().compareTo(o2.date_release());
+                            }
+                            return result;
+                        }
+                    };
+                    // Temp Genre_comparator, will need to be changed when merged when genre is arrayed
+                    Comparator<Game> genre_comparator = new Comparator<Game>() {
+                        @Override
+                        public int compare(Game o1, Game o2) {
+                            int result;
+                            if((tokens.length>3)&&(tokens[4].equals("D"))) {
+                                result = o2.genre().compareTo(o1.genre());
+                            }
+                            else{
+                                result = o1.genre().compareTo(o2.genre());
+                            }
+                            return result;
+                        }
+                    };
+                    if(tokens.length==2){
+                        games.sort(default_comparator);
+                    }
+                    else if(tokens.length>2){
+                        if(tokens[3].equals("title")){
+                            games.sort(title_comparator);
+                        } else if (tokens[3].equals("price")) {
+                            games.sort(price_comparator);
+                        } else if (tokens[3].equals("genre")){
+                            games.sort(genre_comparator);
+                        }
+                        else if (tokens.equals("date")){
+                            games.sort(release_date_comparator);
+                        }
+                        else {
+                            System.out.println("Unknown sort argument: Default sort used");
+                            games.sort(default_comparator);
+                        }
+                    }
+
+                    for(int i = 0; i < games.size(); i++) {
+                        System.out.println(games.get(i));
+                    }
+                }
 
                 default -> {
                     System.out.println(ERR_MESSAGE);
