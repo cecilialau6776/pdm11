@@ -739,6 +739,27 @@ public class App implements IApp {
     }
 
     /**
+     * Gets the oldest date Release for a game
+     *
+     * @param gid the game's id
+     * @return date release as a Date
+     */
+    private Date getDateRelease(int gid){
+        return null;
+    }
+
+    /**
+     * get the cheapest price for a game
+     *
+     * @param gid the game's id
+     * @return price of game as a double
+     */
+    private double getPrice(int gid){
+        return 0;
+    }
+
+
+    /**
      * Gets a game given the game's id
      *
      * @param gid The game's id
@@ -759,7 +780,9 @@ public class App implements IApp {
                 Company dev = getGameDeveloper(gid);
                 Company pub = getGamePublisher(gid);
                 Time playtime = getTotalGamePlaytimeUser(gid);
-                return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime);
+                Date dateRelease = getDateRelease(gid);
+                double price = getPrice(gid);
+                return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime,dateRelease,price);
             } else {
                 System.out.println("No game found");
                 return null;

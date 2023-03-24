@@ -449,7 +449,7 @@ public class CommandLineInterface{
                 selected_user = user_list[input_to_int - 1];
             }
             app.add_friend(selected_user);
-            System.out.println(selected_user.username() + "added to your friend list")
+            System.out.println(selected_user.username() + "added to your friend list");
         }
     }
     private void remove_friend(String coll_name) {
