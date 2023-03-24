@@ -342,7 +342,18 @@ public class App implements IApp {
      */
     @Override
     public Collection collection_add(Collection collection, Game game) {
-        return null;
+        String q = String.format("""
+                    INSERT INTO game_collection (coll_id, gid)
+                    VALUES ('%d', '%d')""", collection.collid(), game.gid());
+
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(q);
+            return getCollection(collection.collid());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -355,7 +366,18 @@ public class App implements IApp {
      */
     @Override
     public Collection collection_remove(Collection collection, Game game) {
-        return null;
+        String q = String.format("""
+                    DELETE FROM game_collection
+                    WHERE collid = '%d' AND gid = '%d'""", collection.collid(), game.gid());
+
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(q);
+            return getCollection(collection.collid());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -366,7 +388,15 @@ public class App implements IApp {
      */
     @Override
     public void collection_delete(Collection collection) {
-
+        String q = String.format("""
+                    DELETE FROM collection
+                    WHERE collid = '%d'""", collection.collid());
+        try {
+            Statement statement = conn.createStatement();
+            statement.executeQuery(q);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -639,7 +669,7 @@ public class App implements IApp {
         String query = String.format("""
                 SELECT d.compid, "name" from company
                     LEFT JOIN publish p on company.compid = p.compid
-                    where p.gid = '%d'""", gid);
+                    WHERE p.gid = '%d'""", gid);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(query);
@@ -667,7 +697,7 @@ public class App implements IApp {
         String query = String.format("""
                 SELECT d.compid, "name" from company
                     LEFT JOIN develop d on company.compid = d.compid
-                    where d.gid = '%d'""", gid);
+                    WHERE d.gid = '%d'""", gid);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(query);
