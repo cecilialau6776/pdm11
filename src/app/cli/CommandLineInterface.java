@@ -373,6 +373,125 @@ public class CommandLineInterface{
 
         System.out.println("Successfully submitted rating.");
     }
+    private void play(String coll_name, String time) {
+        Scanner in = new Scanner(System.in);
+        String input;
+        Game[] game_list = app.search_game_name(coll_name);
+
+        if(game_list.length == 0) {
+            System.out.println("There is not a game with that name.");
+        }
+        else {
+            Game selected_game = game_list[0];
+            if(game_list.length > 1) {
+                System.out.println("Which game would you like to play (enter the number)?");
+                for(int i = 0; i < game_list.length; ++i) {
+                    Game curr_game = game_list[i];
+                    System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
+                            curr_game.playtime());
+                }
+
+                int input_to_int;
+                do{
+                    input = in.nextLine();
+                    input_to_int = Integer.parseInt(input);
+                    if(input_to_int > 0 && input_to_int < game_list.length) {
+                        break;
+                    }
+                    System.out.println("Invalid game number. Try again.");
+                } while (true);
+                selected_game = game_list[input_to_int-1];
+            }
+            Time run_time = new Time(Integer.parseInt(time));
+            app.play(selected_game,run_time);
+        }
+    }
+    private void search_user(String coll_name) {
+        User[] user_list = app.search_users(coll_name);
+
+        if(user_list.length==0) {
+            System.out.println("There no users linked to this email address");
+
+        }
+        else{
+            System.out.println("Here's all the Usernames associated with this email");
+            for(int i = 0; i < user_list.length; ++i) {
+                User curr_user = user_list[i];
+                System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+            }
+        }
+    }
+    private void add_friend(String coll_name) {
+        Scanner in = new Scanner(System.in);
+        String input;
+
+        User[] user_list = app.search_users(coll_name);
+
+        if (user_list.length == 0) {
+            System.out.println("There no users linked to this email address");
+        } else {
+            User selected_user = user_list[0];
+            if (user_list.length > 1) {
+                System.out.println("Which friend would you like to add (enter the number)?");
+                for (int i = 0; i < user_list.length; ++i) {
+                    User curr_user = user_list[i];
+                    System.out.println(i + 1 + ".\tUsername: " + curr_user.username());
+                }
+                int input_to_int;
+                do {
+                    input = in.nextLine();
+                    input_to_int = Integer.parseInt(input);
+                    if (input_to_int > 0 && input_to_int < user_list.length) {
+                        break;
+                    }
+                    System.out.println("Invalid user number. Try again.");
+                } while (true);
+                selected_user = user_list[input_to_int - 1];
+            }
+            app.add_friend(selected_user);
+            System.out.println(selected_user.username() + "added to your friend list")
+        }
+    }
+    private void remove_friend(String coll_name) {
+        Scanner in = new Scanner(System.in);
+        String input;
+        User[] user_list = app.search_friends();
+        if (user_list.length == 0) {
+            System.out.println("There are no friends linked to this email address");
+        } else {
+            ArrayList<User> removable_users = new ArrayList<>();
+            for(int i = 0; i < user_list.length; i++) {
+                String curr_user_email = user_list[i].email();
+                if (curr_user_email.equals(coll_name)) {
+                    removable_users.add(user_list[i]);
+                }
+            }
+            if (removable_users.size()>0){
+                User selected_user = removable_users.get(0);
+                System.out.println("Which friend would you like to remove (enter the number)?");
+                for(int i = 0; i < removable_users.size(); ++i) {
+                    User curr_user = removable_users.get(i);
+                    System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+                }
+                int input_to_int;
+                do {
+                    input = in.nextLine();
+                    input_to_int = Integer.parseInt(input);
+                    if (input_to_int > 0 && input_to_int < user_list.length) {
+                        break;
+                    }
+                    System.out.println("Invalid user number. Try again.");
+                } while (true);
+                selected_user = removable_users.get(1);
+                app.delete_friend(selected_user);
+                System.out.println(selected_user.username() + "removed from your friend list");
+            } else {
+                System.out.println("There are no friends linked to this email address");
+            }
+        }
+
+    }
+
 
     /** command to play a game */
     private final static String PLAY = "PLAY";
@@ -549,49 +668,17 @@ public class CommandLineInterface{
                         System.out.println("time            time in milliseconds to be added\n"); //Might change later to a more useful format that milliseconds
                         continue;
                     }
-                    Game[] game_list = app.search_game_name(tokens[1]);
-
-                    if(game_list.length == 0) {
-                        System.out.println("There is not a game with that name.");
-                        continue;
-                    }
-
-                    Game selected_game = game_list[0];
-                    if(game_list.length > 1) {
-                        System.out.println("Which game would you like to play (enter the number)?");
-                        for(int i = 0; i < game_list.length; ++i) {
-                            Game curr_game = game_list[i];
-                            System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                                    curr_game.playtime());
-                        }
-                        input = in.nextLine();
-                        int input_to_int = Integer.parseInt(input);
-                        selected_game = game_list[input_to_int-1];
-                    }
-                    Time run_time = new Time(Integer.parseInt(tokens[2]));
-                    app.play(selected_game,run_time);
+                    play(tokens[1],tokens[2]);
                 }
 
                 case SEARCH_USER -> {
-                    if(tokens.length <2){
+                    if (tokens.length < 2) {
                         System.out.println("\nUsage:");
                         System.out.println("SEARCH_USER { email }");
                         System.out.println("email           email that the account is associated with to be searched\n");
                         continue;
                     }
-                    User[] user_list = app.search_users(tokens[1]);
-
-                    if(user_list.length==0) {
-                        System.out.println("There no users linked to this email address");
-                        continue;
-                    }
-                    if(user_list.length > 1) {
-                        System.out.println("Here's all the Usernames associated with this email");
-                        for(int i = 0; i < user_list.length; ++i) {
-                            User curr_user = user_list[i];
-                            System.out.println(i+1 + ".\tUsername: " + curr_user.username());
-                        }
-                    }
+                    search_user(tokens[1]);
                 }
 
                 case ADD_FRIEND -> {
@@ -601,25 +688,7 @@ public class CommandLineInterface{
                         System.out.println("email           email that the account is associated with to be added\n");
                         continue;
                     }
-                    User[] user_list = app.search_users(tokens[1]);
-
-                    if(user_list.length==0) {
-                        System.out.println("There no users linked to this email address");
-                        continue;
-                    }
-                    User selected_user = user_list[0];
-                    if(user_list.length > 1) {
-                        System.out.println("Which friend would you like to add (enter the number)?");
-                        for(int i = 0; i < user_list.length; ++i) {
-                            User curr_user = user_list[i];
-                            System.out.println(i+1 + ".\tUsername: " + curr_user.username());
-                        }
-                        input = in.nextLine();
-                        int input_to_int = Integer.parseInt(input);
-                        selected_user = user_list[input_to_int-1];
-                    }
-                    app.add_friend(selected_user);
-                    System.out.println(selected_user.username() + "added to your friend list");
+                    add_friend(tokens[1]);
                 }
 
                 case REMOVE_FRIEND -> {
@@ -629,37 +698,7 @@ public class CommandLineInterface{
                         System.out.println("email           email that the account is associated with to be removed\n");
                         continue;
                     }
-                    User[] user_list = app.search_friends();
-
-                    if(user_list.length==0) {
-                        System.out.println("There are no friends linked to this email address");
-                        continue;
-                    }
-
-                    ArrayList<User> searched_users = new ArrayList<>();
-                    for(int i = 0; i < user_list.length; i++){
-                        String curr_user_email = user_list[i].email();
-                        if(curr_user_email.equals(tokens[1])){
-                            searched_users.add(user_list[i]);
-                        }
-                    }
-                    if(searched_users.size()==0) {
-                        System.out.println("There are no friends linked to this email address");
-                        continue;
-                    }
-                    User selected_user = searched_users.get(0);
-                    if(searched_users.size() > 1) {
-                        System.out.println("Which friend would you like to remove (enter the number)?");
-                        for(int i = 0; i < searched_users.size(); ++i) {
-                            User curr_user = searched_users.get(i);
-                            System.out.println(i+1 + ".\tUsername: " + curr_user.username());
-                        }
-                        input = in.nextLine();
-                        int input_to_int = Integer.parseInt(input);
-                        selected_user = searched_users.get(input_to_int);
-                    }
-                    app.delete_friend(selected_user);
-                    System.out.println(selected_user.username() + "removed from your friend list");
+                    remove_friend(tokens[1]);
                 }
 
                 case SEARCH_GAME -> {
