@@ -2,7 +2,11 @@ package app.cli;
 
 import java.sql.Array;
 import java.sql.Time;
-import java.util.*;
+import java.sql.Date;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Scanner;
+import java.util.ArrayList;
 
 import app.IApp;
 import app.model.Collection;
@@ -19,7 +23,7 @@ public class CommandLineInterface{
     private final static String PROMPT = "pdm320_11 interface> ";
 
     /** Error message for unrecognized command */
-    private final static String ERR_MESSAGE = "Unrecognized command, please try again";
+    private final static String ERR_MESSAGE = "Unrecognized command, Type \"help\" to get list of commands";
 
     /** Exit message for when exit command is called */
     private final static String EXIT_MESSAGE = "Exiting command line interface";
@@ -64,6 +68,34 @@ public class CommandLineInterface{
         System.out.println("Name:\t" + collection.coll_name());
         System.out.println("# of games\t" + collection.games().length);
         System.out.println("Play time:\t" + app.total_playtime_collection(collection));
+    }
+
+    private void printFullGame(Game game){
+        System.out.println("Name: " + game.title());
+        System.out.println("price: " + game.price());
+        System.out.println("playtime: " + game.playtime());
+
+        System.out.print("platforms: [ ");
+        Platform[] platforms = app.get_game_platforms(game);
+        for(int i = 0; i<platforms.length;i++){
+            System.out.print(platforms[i]+ " ");
+        }
+        System.out.println("]");
+
+        System.out.println("publisher: " + game.publisher());
+        System.out.println("developer: " + game.developer());
+        System.out.print("genres: [ ");
+        for(int i = 0; i<game.genres().length;i++){
+            System.out.print(game.genres()[i]+ " ");
+        }
+        System.out.println("]");
+        System.out.println("playtime: " + game.playtime());
+        System.out.print("ratings: [ ");
+        for(int i = 0; i<game.ratings().length;i++){
+            System.out.print(game.ratings()[i]+ " ");
+        }
+        System.out.println("]");
+
     }
 
     private void get_collections() {
@@ -369,6 +401,288 @@ public class CommandLineInterface{
 
         System.out.println("Successfully submitted rating.");
     }
+    private void play(String coll_name, String time) {
+        Scanner in = new Scanner(System.in);
+        String input;
+        Game[] game_list = app.search_game_name(coll_name);
+
+        if(game_list.length == 0) {
+            System.out.println("There is not a game with that name.");
+        }
+        else {
+            Game selected_game = game_list[0];
+            if(game_list.length > 1) {
+                System.out.println("Which game would you like to play (enter the number)?");
+                for(int i = 0; i < game_list.length; ++i) {
+                    Game curr_game = game_list[i];
+                    System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
+                            curr_game.playtime());
+                }
+
+                int input_to_int;
+                do{
+                    input = in.nextLine();
+                    input_to_int = Integer.parseInt(input);
+                    if(input_to_int > 0 && input_to_int < game_list.length) {
+                        break;
+                    }
+                    System.out.println("Invalid game number. Try again.");
+                } while (true);
+                selected_game = game_list[input_to_int-1];
+            }
+            Time run_time = new Time(Integer.parseInt(time));
+            app.play(selected_game,run_time);
+        }
+    }
+    private void search_user(String coll_name) {
+        User[] user_list = app.search_users(coll_name);
+
+        if(user_list.length==0) {
+            System.out.println("There no users linked to this email address");
+
+        }
+        else{
+            System.out.println("Here's all the Usernames associated with this email");
+            for(int i = 0; i < user_list.length; ++i) {
+                User curr_user = user_list[i];
+                System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+            }
+        }
+    }
+    private void add_friend(String coll_name) {
+        Scanner in = new Scanner(System.in);
+        String input;
+
+        User[] user_list = app.search_users(coll_name);
+        User[] friends = app.search_friends();
+
+        if (user_list.length == 0) {
+            System.out.println("There no users linked to this email address");
+        } else {
+            User selected_user = user_list[0];
+            if (user_list.length > 1) {
+                System.out.println("Which friend would you like to add (enter the number)?");
+                for (int i = 0; i < user_list.length; ++i) {
+                    User curr_user = user_list[i];
+                    System.out.println(i + 1 + ".\tUsername: " + curr_user.username());
+                }
+                int input_to_int;
+                do {
+                    input = in.nextLine();
+                    input_to_int = Integer.parseInt(input);
+                    if (input_to_int > 0 && input_to_int < user_list.length) {
+                        break;
+                    }
+                    System.out.println("Invalid user number. Try again.");
+                } while (true);
+                selected_user = user_list[input_to_int - 1];
+            }
+            boolean can_add = true;
+            for(int i = 0; i<friends.length;i++){
+                if(selected_user.equals(friends[i])){
+                    can_add = false;
+                }
+            }
+            if(can_add) {
+                app.add_friend(selected_user);
+                System.out.println(selected_user.username() + "added to your friend list");
+            } else {
+                System.out.println("This user is already a friend!");
+            }
+        }
+    }
+    private void remove_friend(String coll_name) {
+        Scanner in = new Scanner(System.in);
+        String input;
+        User[] user_list = app.search_friends();
+        if (user_list.length == 0) {
+            System.out.println("There are no friends linked to this email address");
+        } else {
+            ArrayList<User> removable_users = new ArrayList<>();
+            for(int i = 0; i < user_list.length; i++) {
+                String curr_user_email = user_list[i].email();
+                if (curr_user_email.equals(coll_name)) {
+                    removable_users.add(user_list[i]);
+                }
+            }
+            if (removable_users.size()>0){
+                User selected_user = removable_users.get(0);
+                System.out.println("Which friend would you like to remove (enter the number)?");
+                for(int i = 0; i < removable_users.size(); ++i) {
+                    User curr_user = removable_users.get(i);
+                    System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+                }
+                int input_to_int;
+                do {
+                    input = in.nextLine();
+                    input_to_int = Integer.parseInt(input);
+                    if (input_to_int > 0 && input_to_int < user_list.length) {
+                        break;
+                    }
+                    System.out.println("Invalid user number. Try again.");
+                } while (true);
+                selected_user = removable_users.get(1);
+                app.delete_friend(selected_user);
+                System.out.println(selected_user.username() + "removed from your friend list");
+            } else {
+                System.out.println("There are no friends linked to this email address");
+            }
+        }
+
+    }
+    private void search_game_usage(){
+        System.out.println("\nUsage: ");
+        System.out.println("SEARCH_GAME { search_val | search_type } | sort_val | descend }");
+        System.out.println("search_val      value being searched");
+        System.out.println("search_type     type that the being search is, below are acceptable inputs");
+        System.out.println("                {title},{platform},{date},{developer},{price},{genre}");
+        System.out.println("sort_val        optional argument to sort the results by, below are acceptable inputs");
+        System.out.println("                {title},{price},{genre},{developer},{date}");
+        System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
+    }
+    private void search_game(String search_val, String search_type, String sort_val, String descend) {
+
+        ArrayList<Game> games_list = new ArrayList<>();
+        boolean correct_format = true;
+        if (search_type.equals("title")) {
+            Game[] game_array = app.search_game_name(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("platform")) {
+            Game[] game_array = app.search_game_platform(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("date")) {
+            Date release_date = new Date(Long.parseLong(search_val));
+            Game[] game_array = app.search_game_release_date(release_date);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("developer")) {
+            Game[] game_array = app.search_game_developer(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("price")) {
+            Game[] game_array = app.search_game_price(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else if (search_type.equals("genre")) {
+            Game[] game_array = app.search_game_genre(search_val);
+            games_list = new ArrayList<>(Arrays.stream(game_array).toList());
+        } else{
+            correct_format = false;
+        }
+        if(correct_format){
+            Comparator<Game> default_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    int result = o1.title().compareTo(o2.title());
+                    if(result == 0){
+                        return o1.date_release().compareTo(o2.date_release());
+                    } else {
+                        return result;
+                    }
+                }
+            };
+            Comparator<Game> title_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    return o2.title().compareTo(o1.title());
+                }
+            };
+            Comparator<Game> price_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    int result;
+                    if (o2.price() - o1.price() > 0)
+                        result = 1;
+                    else {
+                        result = -1;
+                    }
+                    return result;
+                }
+            };
+            Comparator<Game> release_date_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    return o1.date_release().compareTo(o2.date_release());
+                }
+            };
+
+            // Temp Genre_comparator, will need to be changed when merged when genre is arrayed
+            Comparator<Game> genre_comparator = new Comparator<Game>() {
+                @Override
+                public int compare(Game o1, Game o2) {
+                    int result = 0;
+                    int o1_genres = o1.genres().length;
+                    int o2_genres = o2.genres().length;
+                    for(int i = 0; (i<o1_genres) && (i<o2_genres);i++){
+                        result = o1.genres()[i].compareTo(o2.genres()[i]);
+                        if(result != 0){
+                            return result;
+                        }
+                    }
+                    return result;
+                }
+            };
+            if (sort_val.equals("default")) {
+                games_list.sort(default_comparator);
+            } else if (sort_val.equals("title")) {
+                if (descend.equals("D")) {
+                    games_list.sort(title_comparator.reversed());
+                } else {
+                    games_list.sort(title_comparator);
+                }
+            } else if (sort_val.equals("price")) {
+                if (descend.equals("D")) {
+                    games_list.sort(price_comparator.reversed());
+                } else {
+                    games_list.sort(price_comparator);
+                }
+            } else if (sort_val.equals("genre")) {
+                if (descend.equals("D")) {
+                    games_list.sort(genre_comparator.reversed());
+                } else {
+                    games_list.sort(genre_comparator);
+                }
+            } else if (sort_val.equals("date")) {
+                if (descend.equals("D")) {
+                    games_list.sort(release_date_comparator.reversed());
+                } else {
+                    games_list.sort(release_date_comparator);
+                }
+            } else {
+                System.out.println("Unknown sort argument: default sort used");
+                games_list.sort(default_comparator);
+            }
+            for(int i = 0; i < games_list.size(); i++) {
+                printFullGame(games_list.get(i));
+            }
+        }
+        else{
+            search_game_usage();
+        }
+    }
+    private void search_game(String search_val, String search_type, String sort_val){
+        search_game(search_val,search_type,sort_val,"A");
+    }
+    private void search_game(String search_val, String search_type){
+        search_game(search_val,search_type,"default","A");
+    }
+
+
+
+
+    /** command to play a game */
+    private final static String PLAY = "PLAY";
+
+    /** command to search a friend */
+    private final static String SEARCH_USER = "SEARCH_FRIEND";
+
+    /** command to add a friend */
+    private final static String ADD_FRIEND = "ADD_FRIEND";
+
+    /** command to remove a friend */
+    private final static String REMOVE_FRIEND = "REMOVE_FRIEND";
+
+    /** command to search for a list of games */
+    private final static String SEARCH_GAME = "SEARCH_GAME";
+    /** command to see list of usable commands */
+    private final static String HELP = "HELP";
 
     /**
      * Constructs a CLI by creating the application it uses as a backend
@@ -519,6 +833,81 @@ public class CommandLineInterface{
                     }
                     rate(tokens[1], tokens[2]);
                 }//add more cases
+
+                case PLAY -> {
+                    if(tokens.length <3){
+                        System.out.println("\nUsage:");
+                        System.out.println("PLAY { game | time }");
+                        System.out.println("game            game to be played");
+                        System.out.println("time            time in milliseconds to be added\n"); //Might change later to a more useful format that milliseconds
+                        continue;
+                    }
+                    play(tokens[1],tokens[2]);
+                }
+
+                case SEARCH_USER -> {
+                    if (tokens.length < 2) {
+                        System.out.println("\nUsage:");
+                        System.out.println("SEARCH_USER { email }");
+                        System.out.println("email           email that the account is associated with to be searched\n");
+                        continue;
+                    }
+                    search_user(tokens[1]);
+                }
+
+                case ADD_FRIEND -> {
+                    if(tokens.length <2){
+                        System.out.println("\nUsage:");
+                        System.out.println("ADD_FRIEND { email }");
+                        System.out.println("email           email that the account is associated with to be added\n");
+                        continue;
+                    }
+                    add_friend(tokens[1]);
+                }
+
+                case REMOVE_FRIEND -> {
+                    if(tokens.length <2){
+                        System.out.println("\nUsage:");
+                        System.out.println("REMOVE_FRIEND { email }");
+                        System.out.println("email           email that the account is associated with to be removed\n");
+                        continue;
+                    }
+                    remove_friend(tokens[1]);
+                }
+
+                case SEARCH_GAME -> {
+                    if(tokens.length<3){
+                        search_game_usage();
+                    }
+                    else if (tokens.length==3){
+                        search_game(tokens[1],tokens[2]);
+                    } else if (tokens.length==4){
+                        search_game(tokens[1],tokens[2],tokens[3]);
+                    } else if (tokens.length==5){
+                        search_game(tokens[1],tokens[2],tokens[3],tokens[4]);
+                    }
+                }
+
+                case HELP  -> {
+                    System.out.println("\nFor a more in depth usage of each command, Enter the command with no arguments\n");  //Not universal true, will be changed based on feedback
+                    System.out.println("\nCOMMAND                 DESCRIPTION\n");
+                    System.out.println("login                   login to user account");
+                    System.out.println("logout                  logout of user that is logged in right now");
+                    System.out.println("signup                  creates a new user account in database");
+                    System.out.println("get_collections         get owned user's collections");     //will not send usage with 0 arguments
+                    System.out.println("collection_add          add game to a owned collection");
+                    System.out.println("collection_remove       remove game from collection");
+                    System.out.println("collection_rename       rename a owned collection");
+                    System.out.println("collection_delete       delete a owned collection");
+                    System.out.println("collection_create       create new collection");
+                    System.out.println("rate                    rate a game from 1-5");
+                    System.out.println("play                    play a game by {millisecond} amount");
+                    System.out.println("search_user             get a list of users owned by a given email");
+                    System.out.println("add_friend              add a user as a friend with provided email");
+                    System.out.println("remove_friend           remove user from friends with provided email");
+                    System.out.println("search_game             search a list of games based on value given");
+                    System.out.println("\nFor a more in depth usage of each command, Enter the command with no arguments\n");
+                }
 
                 default -> {
                     System.out.println(ERR_MESSAGE);

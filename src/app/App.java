@@ -672,8 +672,8 @@ public class App implements IApp {
      * @return The user information if found, null if not
      */
     @Override
-    public User search_friend(String email) {
-        return null;
+    public User[] search_users(String email) {
+        return new User[0];
     }
 
     /**
@@ -717,6 +717,11 @@ public class App implements IApp {
             e.printStackTrace();
         }
     }
+
+    public User[] search_friends(){
+        return new User[0];
+    }
+
 
     /**
      * Gets a list of the game's ratings
@@ -874,6 +879,27 @@ public class App implements IApp {
     }
 
     /**
+     * Gets the oldest date Release for a game
+     *
+     * @param gid the game's id
+     * @return date release as a Date
+     */
+    private Date getDateRelease(int gid){
+        return null;
+    }
+
+    /**
+     * get the cheapest price for a game
+     *
+     * @param gid the game's id
+     * @return price of game as a double
+     */
+    private double getPrice(int gid){
+        return 0;
+    }
+
+
+    /**
      * Gets a game given the game's id
      *
      * @param gid The game's id
@@ -894,7 +920,9 @@ public class App implements IApp {
                 Company dev = getGameDeveloper(gid);
                 Company pub = getGamePublisher(gid);
                 Time playtime = getTotalGamePlaytimeUser(gid);
-                return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime);
+                Date dateRelease = getDateRelease(gid);
+                double price = getPrice(gid);
+                return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime,dateRelease,price);
             } else {
                 System.out.println("No game found");
                 return null;

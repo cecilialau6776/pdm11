@@ -199,11 +199,11 @@ public interface IApp {
     void play(Game game, Time time);
 
     /**
-     * Searches the database for a user based on their email.
+     * Searches the database for users based on their email.
      * @param email The user's email
      * @return The user information if found, null if not
      */
-    User search_friend(String email);
+    User[] search_users(String email);
 
     /**
      * Adds a user as a friend. Friend to be added is assumed
@@ -220,4 +220,13 @@ public interface IApp {
      * @param friend The friend to remove
      */
     void delete_friend(User friend);
+
+    /**
+     * gets a list of your friends
+     * @return list of users with this email that are friends
+     */
+    User[] search_friends();
+
+
+
 }
