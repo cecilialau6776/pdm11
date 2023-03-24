@@ -558,7 +558,8 @@ public class CommandLineInterface{
             Game[] game_array = app.search_game_developer(search_val);
             games_list = new ArrayList<>(Arrays.stream(game_array).toList());
         } else if (search_type.equals("price")) {
-            Game[] game_array = app.search_game_price(search_val);
+            double val = Double.parseDouble(search_val);
+            Game[] game_array = app.search_game_price(val);
             games_list = new ArrayList<>(Arrays.stream(game_array).toList());
         } else if (search_type.equals("genre")) {
             Game[] game_array = app.search_game_genre(search_val);
