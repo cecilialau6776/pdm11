@@ -1,7 +1,5 @@
 package app.model;
 
-import java.sql.Time;
-
 /**
  * Record to store a Collection
  * @param collid The collection id, unique identifier

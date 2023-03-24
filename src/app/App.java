@@ -7,41 +7,55 @@ import com.jcraft.jsch.*;
 
 import java.sql.*;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.Properties;
 
 /**
  * Database application object.
- *
+ * <p>
  * In a Model-View-Controller architecture this is the controller.
  *
  * @author Damon Gonzalez
  */
-public class App implements IApp{
+public class App implements IApp {
 
-    /** Usage method for running this program*/
+    /**
+     * Usage method for running this program
+     */
     private final static String USAGE = "Usage: java App <cs_username> <cs_password>";
 
-    /** Initial message to user */
+    /**
+     * Initial message to user
+     */
     private final static String MSG = "Principles of Data Management, Group 11, Database Application";
 
-    /** The name of our group's database on starbug */
+    /**
+     * The name of our group's database on starbug
+     */
     private final static String databaseName = "p320_11";
 
-    /** The connection to the server, SQL statements are executed via this variable */
+    /**
+     * The connection to the server, SQL statements are executed via this variable
+     */
     private Connection conn;
 
-    /** The SSH session on the server */
+    /**
+     * The SSH session on the server
+     */
     private Session session;
 
-    /** The current user logged in, default null */
+    /**
+     * The current user logged in, default null
+     */
     private User currentUser;
 
     /**
      * Creates an App object by establishing a connection to our SQL server
+     *
      * @param cs_username Credentials to log into starbug sql server
      * @param cs_password ...
      */
-    public App(String cs_username, String cs_password){
+    public App(String cs_username, String cs_password) {
         System.out.println(MSG);
 
         int lport = 5432;
@@ -56,14 +70,14 @@ public class App implements IApp{
             session = jsch.getSession(cs_username, rhost, 22);
             session.setPassword(cs_password);
             session.setConfig(config);
-            session.setConfig("PreferredAuthentications","publickey,keyboard-interactive,password");
+            session.setConfig("PreferredAuthentications", "publickey,keyboard-interactive,password");
             session.connect();
             System.out.println("Connected");
             int assigned_port = session.setPortForwardingL(lport, "localhost", rport);
             System.out.println("Port Forwarded");
 
             // Assigned port could be different from 5432 but rarely happens
-            String url = "jdbc:postgresql://localhost:"+ assigned_port + "/" + databaseName;
+            String url = "jdbc:postgresql://localhost:" + assigned_port + "/" + databaseName;
 
             System.out.println("database Url: " + url);
             Properties props = new Properties();
@@ -73,7 +87,7 @@ public class App implements IApp{
             Class.forName(driverName);
             conn = DriverManager.getConnection(url, props);
             System.out.println("Database connection established");
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Connection failed, exiting application...");
             exit(1);//exit on error
@@ -84,17 +98,17 @@ public class App implements IApp{
     }
 
     @Override
-    public void exit(int errCode){
-        try{
-            if(conn != null){
+    public void exit(int errCode) {
+        try {
+            if (conn != null) {
                 conn.close();
             }
-            if(session != null){
+            if (session != null) {
                 session.disconnect();
             }
             System.out.println("Application closing");
             System.exit(errCode);
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -106,16 +120,16 @@ public class App implements IApp{
 
     @Override
     public User logIn(String username, String password) {
-        if(currentUser != null){
+        if (currentUser != null) {
             return null;
         }
 
         String query = "SELECT * FROM \"user\" " +
                 "WHERE username = \'" + username + "\' AND password = \'" + password + "\'";
-        try{
+        try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
-            if(rs.next()){
+            if (rs.next()) {
                 String rs_username = rs.getString("username");
                 String rs_password = rs.getString("password");
                 String rs_email = rs.getString("email");
@@ -137,7 +151,7 @@ public class App implements IApp{
                 System.out.println("No user found");
                 return null;
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
@@ -150,7 +164,23 @@ public class App implements IApp{
      */
     @Override
     public Platform[] get_platforms() {
-        return null;
+        String query_format = "SELECT p.pid, p.name FROM owned_platform op join platform p on op.pid = p.pid"
+                            + "WHERE username = '%s'";
+        String query = String.format(query_format, currentUser.username());
+        try{
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            ArrayList<Platform> platforms = new ArrayList<>();
+            while(rs.next()){
+                int pid = rs.getInt("pid");
+                String name = rs.getString("name");
+                platforms.add(new Platform(pid, name));
+            }
+            return platforms.toArray(new Platform[platforms.size()]);
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -172,7 +202,23 @@ public class App implements IApp{
      */
     @Override
     public Time total_playtime_collection(Collection collection) {
-        return null;
+        String q = String.format("""
+                SELECT sum(time_played) FROM plays
+                    JOIN game g on g.gid = plays.gid
+                    JOIN game_collection gc on g.gid = gc.gid
+                    WHERE gc.collid = '%d'""", collection.collid());
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(q);
+            if (rs.next()) {
+                return rs.getTime("sum");
+            } else {
+                return new Time(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
@@ -191,16 +237,16 @@ public class App implements IApp{
                 + "\',\'" + email + "\',\'" + firstname
                 + "\',\'" + lastname + "\',\'" + sqlDate
                 + "\',\'" + sqlDate + "\')";
-        try{
+        try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(check_query);
-            if(!rs.next()){//the username is not used by anybody else
+            if (!rs.next()) {//the username is not used by anybody else
                 stmt.executeUpdate(insert_query);
                 return logIn(username, password);
             } else {
                 return null;
             }
-        } catch (SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             return null;
         }
@@ -213,7 +259,77 @@ public class App implements IApp{
      */
     @Override
     public Collection[] get_collections() {
-        return new Collection[0];
+        String q = String.format("SELECT collid FROM collection WHERE coll_username = '%s'", currentUser.username());
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(q);
+            ArrayList<Collection> collections = new ArrayList<>();
+            while (rs.next()) {
+                collections.add(getCollection(rs.getInt("collid")));
+            }
+            return collections.toArray(new Collection[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets a collection
+     *
+     * @param collid The Collection's id
+     * @return The matching Collection
+     */
+    private Collection getCollection(int collid) {
+        String gamesQuery = String.format("SELECT gid from game_collection WHERE collid = '%d'", collid);
+        String collQuery = String.format("SELECT coll_username, coll_name FROM collection WHERE collid = '%d'", collid);
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(collQuery);
+            if (rs.next()) {
+                rs = s.executeQuery(gamesQuery);
+                ArrayList<Game> games = new ArrayList<>();
+                while (rs.next()) {
+                    games.add(getGame(rs.getInt("gid")));
+                }
+                String collUsername = rs.getString("coll_username");
+                String collName = rs.getString("coll_name");
+                return new Collection(collid, collUsername, collName, games.toArray(new Game[0]));
+            } else {
+                System.out.println("No collection with id " + collid);
+                return null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets all the collections the user has with the given name, case-insensitive.
+     *
+     * @param name The name
+     * @return Array of Collections.
+     */
+    @Override
+    public Collection[] get_collection_name(String name) {
+        String q = String.format("""
+                    SELECT collid FROM collection
+                WHERE UPPER(coll_name) = UPPER('%s') AND coll_username = '%s'""", name, currentUser.username());
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(q);
+            ArrayList<Collection> collections = new ArrayList<>();
+            while (rs.next()) {
+                int collId = rs.getInt("collid");
+                collections.add(getCollection(collId));
+            }
+            return collections.toArray(new Collection[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -286,7 +402,19 @@ public class App implements IApp{
      */
     @Override
     public Game[] search_game_name(String name) {
-        return new Game[0];
+        String q = String.format("SELECT gid FROM game WHERE UPPER(title) = UPPER(%s)", name);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(q);
+            ArrayList<Game> games = new ArrayList<>();
+            while (rs.next()) {
+                games.add(getGame(rs.getInt("gid")));
+            }
+            return games.toArray(new Game[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -308,7 +436,21 @@ public class App implements IApp{
      */
     @Override
     public Game[] search_game_platform(String platform) {
-        return new Game[0];
+        String q = String.format("SELECT gid FROM game_platform\n" +
+                "    JOIN platform p on game_platform.pid = p.pid\n" +
+                "    WHERE UPPER(p.name) = UPPER(%s)", platform);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(q);
+            ArrayList<Game> games = new ArrayList<>();
+            while (rs.next()) {
+                games.add(getGame(rs.getInt("gid")));
+            }
+            return games.toArray(new Game[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -331,7 +473,22 @@ public class App implements IApp{
      */
     @Override
     public Game[] search_game_developer(String developer) {
-        return new Game[0];
+        String q = String.format("""
+                SELECT gid FROM develop
+                    JOIN company c on develop.compid = c.compid
+                    WHERE UPPER(c.name) = UPPER(%s)""", developer);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(q);
+            ArrayList<Game> games = new ArrayList<>();
+            while (rs.next()) {
+                games.add(getGame(rs.getInt("gid")));
+            }
+            return games.toArray(new Game[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -342,7 +499,22 @@ public class App implements IApp{
      */
     @Override
     public Game[] search_game_genre(String genre) {
-        return new Game[0];
+        String q = String.format("""
+                SELECT gid FROM game_genre
+                JOIN genre g on g.geid = game_genre.geid
+                WHERE UPPER(g.name) = UPPER(%s)""", genre);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(q);
+            ArrayList<Game> games = new ArrayList<>();
+            while (rs.next()) {
+                games.add(getGame(rs.getInt("gid")));
+            }
+            return games.toArray(new Game[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
@@ -412,11 +584,199 @@ public class App implements IApp{
 
 
     /**
+     * Gets a list of the game's ratings
+     *
+     * @param gid The game's id
+     * @return The game's ratings
+     */
+    private int[] getGameRatings(int gid) {
+        String query = String.format("""
+                SELECT star_rating FROM ratings
+                    JOIN game g on ratings.gid = g.gid
+                    WHERE g.gid = '%d'""", gid);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            ArrayList<Integer> ratings = new ArrayList<>();
+            while (rs.next()) {
+                ratings.add(rs.getInt("star_rating"));
+            }
+            return ratings.stream().mapToInt(i -> i).toArray();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets a list of the game's genres
+     *
+     * @param gid The game's id
+     * @return The game's genres
+     */
+    private String[] getGameGenres(int gid) {
+        String query = String.format("""
+                SELECT name FROM genre
+                    JOIN game_genre g on genre.geid = g.geid
+                    WHERE g.gid = '%d'
+                """, gid);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            ArrayList<String> genres = new ArrayList<>();
+            while (rs.next()) {
+                genres.add(rs.getString("name"));
+            }
+            return genres.toArray(new String[0]);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets a game's publisher
+     *
+     * @param gid The game's id
+     * @return The Compnay that published the game
+     */
+    private Company getGamePublisher(int gid) {
+        String query = String.format("""
+                SELECT d.compid, "name" from company
+                    LEFT JOIN publish p on company.compid = p.compid
+                    where p.gid = '%d'""", gid);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            if (rs.next()) {
+                int compId = rs.getInt("compid");
+                String compName = rs.getString("name");
+                return new Company(compId, compName);
+            } else {
+                System.out.println("Game has no publisher.");
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets a game's developer
+     *
+     * @param gid The game's id
+     * @return The Compnay that developed the game
+     */
+    private Company getGameDeveloper(int gid) {
+        String query = String.format("""
+                SELECT d.compid, "name" from company
+                    LEFT JOIN develop d on company.compid = d.compid
+                    where d.gid = '%d'""", gid);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            if (rs.next()) {
+                int compId = rs.getInt("compid");
+                String compName = rs.getString("name");
+                return new Company(compId, compName);
+            } else {
+                System.out.println("Game has no developer.");
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets the total playtime for a game for the current user.
+     *
+     * @param gid The game's id
+     * @return Total playtime as a Time
+     */
+    private Time getTotalGamePlaytimeUser(int gid) {
+        String q = String.format("""
+                SELECT sum(time_played) FROM plays
+                    WHERE gid = '%d' AND username = '%s'""", gid, currentUser.username());
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(q);
+            if (rs.next()) {
+                return rs.getTime("sum");
+            } else {
+                return new Time(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets the total playtime for a game.
+     *
+     * @param gid The game's id
+     * @return Total playtime as a Time
+     */
+    private Time getTotalGamePlaytime(int gid) {
+        String q = String.format("""
+                SELECT sum(time_played) FROM plays
+                    WHERE gid = '%d'""", gid);
+        try {
+            Statement s = conn.createStatement();
+            ResultSet rs = s.executeQuery(q);
+            if (rs.next()) {
+                return rs.getTime("sum");
+            } else {
+                return new Time(0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Gets a game given the game's id
+     *
+     * @param gid The game's id
+     * @return The matching Game
+     */
+    private Game getGame(int gid) {
+        String query = String.format("""
+                SELECT title, esrb_rating from game
+                    WHERE gid = '%d'""", gid);
+        try {
+            Statement statement = conn.createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            if (rs.next()) {
+                String title = rs.getString("title");
+                String esrbRating = rs.getString("esrb_rating");
+                int[] ratings = getGameRatings(gid);
+                String[] genres = getGameGenres(gid);
+                Company dev = getGameDeveloper(gid);
+                Company pub = getGamePublisher(gid);
+                Time playtime = getTotalGamePlaytimeUser(gid);
+                return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime);
+            } else {
+                System.out.println("No game found");
+                return null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
      * Main method of this database application
+     *
      * @param args command line arguments
      */
     public static void main(String[] args) {
-        if(args.length != 2){
+        if (args.length != 2) {
             System.err.println(USAGE);
             System.exit(1);
         }

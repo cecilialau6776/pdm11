@@ -9,7 +9,7 @@ import java.sql.Date;
  * @param title
  * @param esrb_rating
  * @param ratings
- * @param genre
+ * @param genres
  * @param developer
  * @param publisher
  * @param playtime
@@ -19,7 +19,7 @@ public record Game(
         String title,
         String esrb_rating,
         int[] ratings,
-        String genre,
+        String[] genres,
         Company developer,
         Company publisher,
         Time playtime,
