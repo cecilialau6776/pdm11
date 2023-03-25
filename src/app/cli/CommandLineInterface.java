@@ -521,7 +521,7 @@ public class CommandLineInterface{
                     }
                     System.out.println("Invalid user number. Try again.");
                 } while (true);
-                selected_user = removable_users.get(0);
+                selected_user = removable_users.get(input_to_int-1);
                 app.delete_friend(selected_user);
                 System.out.println(selected_user.username() + "removed from your friend list");
             } else {
