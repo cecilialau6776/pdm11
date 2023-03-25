@@ -630,7 +630,7 @@ public class App implements IApp {
             System.out.println("Rating must be in range 0-5 inclusive.");
             return null;
         }
-        String query = String.format("INSERT INTO ratings (username, gid, star_rating) VALUES('mbooymk', %d, %d)", game.gid(), rating);
+        String query = String.format("INSERT INTO ratings (username, gid, star_rating) VALUES('%s', %d, %d)", currentUser.username(), game.gid(), rating);
         try {
             Statement statement = conn.createStatement();
             statement.execute(query);
