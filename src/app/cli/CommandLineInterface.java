@@ -460,7 +460,7 @@ public class CommandLineInterface{
             System.out.println("There no users linked to this email address");
         } else {
             User selected_user = user_list[0];
-            if (user_list.length > 1) {
+            if (user_list.length > 0) {
                 System.out.println("Which friend would you like to add (enter the number)?");
                 for (int i = 0; i < user_list.length; ++i) {
                     User curr_user = user_list[i];
@@ -470,7 +470,7 @@ public class CommandLineInterface{
                 do {
                     input = in.nextLine();
                     input_to_int = Integer.parseInt(input);
-                    if (input_to_int > 0 && input_to_int < user_list.length) {
+                    if (input_to_int > 0 && input_to_int <= user_list.length) {
                         break;
                     }
                     System.out.println("Invalid user number. Try again.");
@@ -516,12 +516,12 @@ public class CommandLineInterface{
                 do {
                     input = in.nextLine();
                     input_to_int = Integer.parseInt(input);
-                    if (input_to_int > 0 && input_to_int < user_list.length) {
+                    if (input_to_int > 0 && input_to_int <= user_list.length) {
                         break;
                     }
                     System.out.println("Invalid user number. Try again.");
                 } while (true);
-                selected_user = removable_users.get(1);
+                selected_user = removable_users.get(0);
                 app.delete_friend(selected_user);
                 System.out.println(selected_user.username() + "removed from your friend list");
             } else {
@@ -672,7 +672,7 @@ public class CommandLineInterface{
     private final static String PLAY = "PLAY";
 
     /** command to search a friend */
-    private final static String SEARCH_USER = "SEARCH_FRIEND";
+    private final static String SEARCH_USER = "SEARCH_USER";
 
     /** command to add a friend */
     private final static String ADD_FRIEND = "ADD_FRIEND";
