@@ -247,7 +247,7 @@ public class CommandLineInterface{
         ArrayList<Game> game_list = new ArrayList<>();
 
         for (Game game : game_list_init) {
-            if (game.title().equals(game_name)) {
+            if (game.title().toLowerCase().equals(game_name.toLowerCase())) {
                 game_list.add(game);
             }
         }

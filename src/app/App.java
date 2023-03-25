@@ -310,7 +310,7 @@ public class App implements IApp {
                 }
                 return new Collection(collid, collUsername, collName, games.toArray(new Game[0]));
             } else {
-                System.out.println("No collection with id " + collid);
+                System.err.println("No collection with id " + collid);
                 return null;
             }
 
@@ -386,7 +386,7 @@ public class App implements IApp {
 
         try {
             Statement statement = conn.createStatement();
-            statement.executeQuery(q);
+            statement.execute(q);
             return getCollection(collection.collid());
         } catch (SQLException e) {
             e.printStackTrace();
