@@ -402,6 +402,10 @@ public class CommandLineInterface{
         System.out.println("Successfully submitted rating.");
     }
     private void play(String coll_name, String time) {
+        int total_minutes = Integer.parseInt(time);
+        int hour = total_minutes / 60;
+        int minutes = total_minutes % 60;
+        Time run_time = new Time(hour,minutes,0);
         Scanner in = new Scanner(System.in);
         String input;
         Game[] game_list = app.search_game_name(coll_name);
@@ -430,7 +434,6 @@ public class CommandLineInterface{
                 } while (true);
                 selected_game = game_list[input_to_int-1];
             }
-            Time run_time = new Time(Integer.parseInt(time));
             app.play(selected_game,run_time);
         }
     }
@@ -523,7 +526,7 @@ public class CommandLineInterface{
                 } while (true);
                 selected_user = removable_users.get(input_to_int-1);
                 app.delete_friend(selected_user);
-                System.out.println(selected_user.username() + "removed from your friend list");
+                System.out.println(selected_user.username() + " removed from your friend list");
             } else {
                 System.out.println("There are no friends linked to this email address");
             }
@@ -840,7 +843,7 @@ public class CommandLineInterface{
                         System.out.println("\nUsage:");
                         System.out.println("PLAY { game | time }");
                         System.out.println("game            game to be played");
-                        System.out.println("time            time in milliseconds to be added\n"); //Might change later to a more useful format that milliseconds
+                        System.out.println("time            time in minutes to be added\n"); //Might change later to a more useful format that milliseconds
                         continue;
                     }
                     play(tokens[1],tokens[2]);
@@ -902,7 +905,7 @@ public class CommandLineInterface{
                     System.out.println("collection_delete       delete a owned collection");
                     System.out.println("collection_create       create new collection");
                     System.out.println("rate                    rate a game from 1-5");
-                    System.out.println("play                    play a game by {millisecond} amount");
+                    System.out.println("play                    play a game by {minutes} amount");
                     System.out.println("search_user             get a list of users owned by a given email");
                     System.out.println("add_friend              add a user as a friend with provided email");
                     System.out.println("remove_friend           remove user from friends with provided email");
