@@ -67,11 +67,11 @@ public class CommandLineInterface{
     private void printCollection(Collection collection) {
         System.out.println("\nName:\t" + collection.coll_name());
         System.out.println("# of games\t" + collection.games().length);
-        System.out.println("Play time:\t" + app.total_playtime_collection(collection));
+        System.out.println("Play time:\t" + app.total_playtime_collection(collection) + "\n");
     }
 
     private void printFullGame(Game game){
-        System.out.println("Name: " + game.title());
+        System.out.println("\nName: " + game.title());
         System.out.println("price: " + game.price());
         System.out.println("playtime: " + game.playtime());
 
