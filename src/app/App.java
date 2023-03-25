@@ -163,9 +163,7 @@ public class App implements IApp {
      */
     @Override
     public Platform[] get_platforms() {
-        String query_format = "SELECT p.pid, p.name FROM owned_platform op join platform p on op.pid = p.pid"
-                + "WHERE username = '%s'";
-        String query = String.format(query_format, currentUser.username());
+        String query = String.format("SELECT p.pid, p.name FROM owned_platform op JOIN platform p ON op.pid = p.pid WHERE username = '%s'", currentUser.username());
         try {
             Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(query);
@@ -303,13 +301,13 @@ public class App implements IApp {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(collQuery);
             if (rs.next()) {
+                String collUsername = rs.getString("coll_username");
+                String collName = rs.getString("coll_name");
                 rs = s.executeQuery(gamesQuery);
                 ArrayList<Game> games = new ArrayList<>();
                 while (rs.next()) {
                     games.add(getGame(rs.getInt("gid")));
                 }
-                String collUsername = rs.getString("coll_username");
-                String collName = rs.getString("coll_name");
                 return new Collection(collid, collUsername, collName, games.toArray(new Game[0]));
             } else {
                 System.out.println("No collection with id " + collid);
@@ -359,12 +357,12 @@ public class App implements IApp {
     @Override
     public Collection collection_add(Collection collection, Game game) {
         String q = String.format("""
-                INSERT INTO game_collection (coll_id, gid)
+                INSERT INTO game_collection (collid, gid)
                 VALUES ('%d', '%d')""", collection.collid(), game.gid());
 
         try {
             Statement statement = conn.createStatement();
-            statement.executeQuery(q);
+            statement.execute(q);
             return getCollection(collection.collid());
         } catch (SQLException e) {
             e.printStackTrace();
