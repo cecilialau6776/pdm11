@@ -727,7 +727,7 @@ public class App implements IApp {
     public void delete_friend(User friend) {
         String q = String.format("""
                 DELETE FROM friends
-                WHERE user = '%s' AND friend = '%s'""", currentUser.username(), friend.username());
+                WHERE "user" = '%s' AND friend = '%s'""", currentUser.username(), friend.username());
 
         try {
             Statement statement = conn.createStatement();
