@@ -220,7 +220,7 @@ public class App implements IApp {
                 SELECT sum(time_played) FROM plays
                     JOIN game g on g.gid = plays.gid
                     JOIN game_collection gc on g.gid = gc.gid
-                    WHERE gc.collid = '%d'""", collection.collid());
+                    WHERE gc.collid = '%d' and plays.username = '%s'""", collection.collid(), currentUser.username());
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
