@@ -41,19 +41,19 @@ public class CommandLineInterface{
     private final static String GET_COLLECTIONS = "GET_COLLECTIONS";
 
     /** Command to add a game to a user's collection */
-    private final static String COLLECTION_ADD = "COLLECTION_ADD";
+    private final static String COLLECTION_ADD = "ADD_COLLECTION";
 
     /** Command to remove a game from a user's collection */
-    private final static String COLLECTION_REMOVE = "COLLECTION_REMOVE";
+    private final static String COLLECTION_REMOVE = "REMOVE_COLLECTION";
 
     /** Command to delete a user's collection */
-    private final static String COLLECTION_DELETE = "COLLECTION_DELETE";
+    private final static String COLLECTION_DELETE = "DELETE_COLLECTION";
 
     /** Command to rename a user's collection */
-    private final static String COLLECTION_RENAME = "COLLECTION_RENAME";
+    private final static String COLLECTION_RENAME = "RENAME_COLLECTION";
 
     /** Command to create a new collection */
-    private final static String COLLECTION_CREATE = "COLLECTION_CREATE";
+    private final static String COLLECTION_CREATE = "CREATE_COLLECTION";
 
     /** Declares current user */
     private User user;
@@ -212,7 +212,6 @@ public class CommandLineInterface{
     private void collection_remove(String coll_name, String game_name) {
         Scanner in = new Scanner(System.in);
         String input;
-        Collection[] collections_list_init = app.get_collections();
         Collection[] collections_list = app.get_collection_name(coll_name);
 
         if(collections_list.length == 0) {
@@ -772,7 +771,7 @@ public class CommandLineInterface{
                     }
 
                     if(tokens.length != 3) {
-                        System.out.println("Usage: collection_add collection-name game-name");
+                        System.out.println("Usage: add_collection collection-name game-name");
                         continue;
                     }
                     collection_add(tokens[1], tokens[2]);
@@ -784,7 +783,7 @@ public class CommandLineInterface{
                     }
 
                     if(tokens.length != 3) {
-                        System.out.println("Usage: collection_remove collection-name game-name");
+                        System.out.println("Usage: remove_collection collection-name game-name");
                         continue;
                     }
                     collection_remove(tokens[1], tokens[2]);
@@ -796,7 +795,7 @@ public class CommandLineInterface{
                     }
 
                     if(tokens.length != 2) {
-                        System.out.println("Usage: collection_delete collection-name");
+                        System.out.println("Usage: delete_collection collection-name");
                         continue;
                     }
                     collection_delete(tokens[1]);
@@ -808,7 +807,7 @@ public class CommandLineInterface{
                     }
 
                     if(tokens.length != 3) {
-                        System.out.println("Usage: collection_rename old-collection-name new-collection-name");
+                        System.out.println("Usage: rename_collection old-collection-name new-collection-name");
                         continue;
                     }
                     collection_rename(tokens[1], tokens[2]);
@@ -820,7 +819,7 @@ public class CommandLineInterface{
                     }
 
                     if(tokens.length != 2) {
-                        System.out.println("Usage: collection_create collection-name");
+                        System.out.println("Usage: create_collection collection-name");
                         continue;
                     }
                     collection_create(tokens[1]);
@@ -899,11 +898,11 @@ public class CommandLineInterface{
                     System.out.println("logout                  logout of user that is logged in right now");
                     System.out.println("signup                  creates a new user account in database");
                     System.out.println("get_collections         get owned user's collections");     //will not send usage with 0 arguments
-                    System.out.println("collection_add          add game to a owned collection");
-                    System.out.println("collection_remove       remove game from collection");
-                    System.out.println("collection_rename       rename a owned collection");
-                    System.out.println("collection_delete       delete a owned collection");
-                    System.out.println("collection_create       create new collection");
+                    System.out.println("add_collection          add game to a owned collection");
+                    System.out.println("remove_collection       remove game from collection");
+                    System.out.println("rename_collection       rename a owned collection");
+                    System.out.println("delete_collection       delete a owned collection");
+                    System.out.println("create_collection       create new collection");
                     System.out.println("rate                    rate a game from 1-5");
                     System.out.println("play                    play a game by {minutes} amount");
                     System.out.println("search_user             get a list of users owned by a given email");
