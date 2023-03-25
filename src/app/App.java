@@ -426,7 +426,7 @@ public class App implements IApp {
         String q = String.format("""
                 UPDATE collection
                 SET coll_name = '%s'
-                WHERE coll_id = '%d'""", new_name, collection.collid());
+                WHERE collid = '%d'""", new_name, collection.collid());
 
         try {
             Statement statement = conn.createStatement();
