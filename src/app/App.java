@@ -2,13 +2,10 @@ package app;
 
 import app.cli.CommandLineInterface;
 import app.model.*;
-import app.model.Collection;
-import com.jcraft.jsch.*;
-import org.postgresql.core.Query;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 
-import javax.xml.transform.Result;
 import java.sql.*;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -837,7 +834,7 @@ public class App implements IApp {
      */
     private Company getGamePublisher(int gid) {
         String query = String.format("""
-                SELECT d.compid, "name" from company
+                SELECT p.compid, "name" from company
                     LEFT JOIN publish p on company.compid = p.compid
                     WHERE p.gid = '%d'""", gid);
         try {
@@ -945,7 +942,8 @@ public class App implements IApp {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
             if (rs.next()) {
-                return rs.getDate("min");
+                Date d = rs.getDate("min");
+                return (d != null) ? d : new Date(0);
             } else {
                 return new Date(0);
             }
