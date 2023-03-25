@@ -65,7 +65,7 @@ public class CommandLineInterface{
     private IApp app;
 
     private void printCollection(Collection collection) {
-        System.out.println("Name:\t" + collection.coll_name());
+        System.out.println("\nName:\t" + collection.coll_name());
         System.out.println("# of games\t" + collection.games().length);
         System.out.println("Play time:\t" + app.total_playtime_collection(collection));
     }
@@ -89,12 +89,12 @@ public class CommandLineInterface{
             System.out.print(game.genres()[i]+ " ");
         }
         System.out.println("]");
-        System.out.println("playtime: " + game.playtime());
+        System.out.println("date_released: " + game.date_release());
         System.out.print("ratings: [ ");
         for(int i = 0; i<game.ratings().length;i++){
             System.out.print(game.ratings()[i]+ " ");
         }
-        System.out.println("]");
+        System.out.println("]\n");
 
     }
 
