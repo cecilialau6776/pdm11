@@ -409,7 +409,7 @@ public class App implements IApp {
                 WHERE collid = '%d'""", collection.collid());
         try {
             Statement statement = conn.createStatement();
-            statement.executeQuery(q);
+            statement.execute(q);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -432,7 +432,7 @@ public class App implements IApp {
 
         try {
             Statement statement = conn.createStatement();
-            statement.executeQuery(q);
+            statement.execute(q);
             return getCollection(collection.collid());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -451,7 +451,7 @@ public class App implements IApp {
         String q = String.format("INSERT INTO collection (coll_username, coll_name) VALUES ('%s', '%s')", currentUser.username(), name);
         try {
             Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(q);
+            statement.execute(q);
             Collection[] collections = get_collection_name(name);
             if (collections.length == 0) {
                 System.out.println("Creation of collection failed");
@@ -633,7 +633,7 @@ public class App implements IApp {
         String query = String.format("INSERT INTO ratings (username, gid, star_rating) VALUES('mbooymk', %d, %d)", game.gid(), rating);
         try {
             Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            statement.execute(query);
             return getGame(game.gid());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -655,7 +655,7 @@ public class App implements IApp {
         String query = String.format("INSERT INTO plays (username, gid, play_date, time_played) VALUES ('%s', %d, '%s', '%s')", currentUser.username(), game.gid(), current_date, time.toString());
         try {
             Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(query);
+            s.execute(query);
         } catch (SQLException e) {
             e.printStackTrace();
             return;
@@ -731,7 +731,7 @@ public class App implements IApp {
 
         try {
             Statement statement = conn.createStatement();
-            statement.executeQuery(q);
+            statement.execute(q);
         } catch (SQLException e) {
             e.printStackTrace();
         }
