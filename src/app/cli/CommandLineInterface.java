@@ -535,12 +535,12 @@ public class CommandLineInterface{
     }
     private void search_game_usage(){
         System.out.println("\nUsage: ");
-        System.out.println("SEARCH_GAME { search_val | search_type } | sort_val | descend }");
+        System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
         System.out.println("search_val      value being searched");
         System.out.println("search_type     type that the being search is, below are acceptable inputs");
         System.out.println("                {title},{platform},{date},{developer},{price},{genre}");
         System.out.println("sort_val        optional argument to sort the results by, below are acceptable inputs");
-        System.out.println("                {title},{price},{genre},{developer},{date}");
+        System.out.println("                {title},{price},{genre},{date}");
         System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
     }
     private void search_game(String search_val, String search_type, String sort_val, String descend) {
