@@ -523,7 +523,7 @@ public class App implements IApp {
     public Game[] search_game_platform(String platform) {
         String q = String.format("SELECT gid FROM game_platform\n" +
                 "    JOIN platform p on game_platform.pid = p.pid\n" +
-                "    WHERE UPPER(p.name) = UPPER(%s)", platform);
+                "    WHERE UPPER(p.name) = UPPER('%s')", platform);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(q);
@@ -573,7 +573,7 @@ public class App implements IApp {
         String q = String.format("""
                 SELECT gid FROM develop
                     JOIN company c on develop.compid = c.compid
-                    WHERE UPPER(c.name) = UPPER(%s)""", developer);
+                    WHERE UPPER(c.name) = UPPER('%s')""", developer);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(q);
@@ -599,7 +599,7 @@ public class App implements IApp {
         String q = String.format("""
                 SELECT gid FROM game_genre
                 JOIN genre g on g.geid = game_genre.geid
-                WHERE UPPER(g.name) = UPPER(%s)""", genre);
+                WHERE UPPER(g.name) = UPPER('%s')""", genre);
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(q);
@@ -628,7 +628,7 @@ public class App implements IApp {
             System.out.println("Rating must be in range 0-5 inclusive.");
             return null;
         }
-        String query = String.format("INSERT INTO ratings (username, gid, star_rating) VALUES('%s', %d, %d)", currentUser.username(), game.gid(), rating);
+        String query = String.format("INSERT INTO ratings (username, gid, star_rating) VALUES('%s', '%d', '%d')", currentUser.username(), game.gid(), rating);
         try {
             Statement statement = conn.createStatement();
             statement.execute(query);
@@ -650,7 +650,7 @@ public class App implements IApp {
     @Override
     public void play(Game game, Time time) {
         Date current_date = new Date(new java.util.Date().getTime());
-        String query = String.format("INSERT INTO plays (username, gid, play_date, time_played) VALUES ('%s', %d, '%s', '%s')", currentUser.username(), game.gid(), current_date, time.toString());
+        String query = String.format("INSERT INTO plays (username, gid, play_date, time_played) VALUES ('%s', '%d', '%s', '%s')", currentUser.username(), game.gid(), current_date, time.toString());
         try {
             Statement s = conn.createStatement();
             s.execute(query);
@@ -847,7 +847,6 @@ public class App implements IApp {
                 String compName = rs.getString("name");
                 return new Company(compId, compName);
             } else {
-                System.err.println("Game has no publisher.");
                 return null;
             }
         } catch (SQLException e) {
@@ -875,7 +874,6 @@ public class App implements IApp {
                 String compName = rs.getString("name");
                 return new Company(compId, compName);
             } else {
-                System.err.println("Game has no developer.");
                 return null;
             }
         } catch (SQLException e) {
@@ -939,7 +937,7 @@ public class App implements IApp {
      * @return date release as a Date
      */
     private Date getDateRelease(int gid) {
-        String q = String.format("SELECT MIN(release_date) FROM game_platform WHERE gid = %d", gid);
+        String q = String.format("SELECT MIN(release_date) FROM game_platform WHERE gid = '%d'", gid);
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
@@ -962,7 +960,7 @@ public class App implements IApp {
      * @return price of game as a double, -1 if not found or error.
      */
     private double getPrice(int gid) {
-        String q = String.format("SELECT MIN(price) FROM game_platform WHERE gid = %d", gid);
+        String q = String.format("SELECT MIN(price) FROM game_platform WHERE gid = '%d'", gid);
         try {
             Statement s = conn.createStatement();
             ResultSet rs = s.executeQuery(q);
