@@ -705,12 +705,12 @@ public class App implements IApp {
     @Override
     public void add_friend(User friend) {
         String q = String.format("""
-                INSERT INTO friends (user, friend)
+                INSERT INTO friends ("user", friend)
                 VALUES ('%s', '%s')""", currentUser.username(), friend.username());
 
         try {
             Statement statement = conn.createStatement();
-            statement.executeQuery(q);
+            statement.execute(q);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -758,16 +758,20 @@ public class App implements IApp {
         try {
             Statement statement = conn.createStatement();
             ResultSet rs = statement.executeQuery(query);
-            String rs_username = rs.getString("username");
-            String rs_password = rs.getString("password");
-            String rs_email = rs.getString("email");
-            String rs_firstname = rs.getString("firstname");
-            String rs_lastname = rs.getString("lastname");
-            Date rs_creation_date = rs.getDate("creation_date");
-            Date rs_last_access_date = rs.getDate("last_access_date");
-            return new User(rs_username, rs_password, rs_email,
-                    rs_firstname, rs_lastname, rs_last_access_date,
-                    rs_creation_date);
+            if (rs.next()) {
+                String rs_username = rs.getString("username");
+                String rs_password = rs.getString("password");
+                String rs_email = rs.getString("email");
+                String rs_firstname = rs.getString("firstname");
+                String rs_lastname = rs.getString("lastname");
+                Date rs_creation_date = rs.getDate("creation_date");
+                Date rs_last_access_date = rs.getDate("last_access_date");
+                return new User(rs_username, rs_password, rs_email,
+                        rs_firstname, rs_lastname, rs_last_access_date,
+                        rs_creation_date);
+            } else {
+                return null;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
@@ -845,7 +849,7 @@ public class App implements IApp {
                 String compName = rs.getString("name");
                 return new Company(compId, compName);
             } else {
-                System.out.println("Game has no publisher.");
+                System.err.println("Game has no publisher.");
                 return null;
             }
         } catch (SQLException e) {
@@ -873,7 +877,7 @@ public class App implements IApp {
                 String compName = rs.getString("name");
                 return new Company(compId, compName);
             } else {
-                System.out.println("Game has no developer.");
+                System.err.println("Game has no developer.");
                 return null;
             }
         } catch (SQLException e) {
