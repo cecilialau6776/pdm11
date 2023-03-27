@@ -19,7 +19,7 @@ import java.util.Properties;
 public class App implements IApp {
 
     /**
-     * Usage method for running this program
+     * Usage message for running this program
      */
     private final static String USAGE = "Usage: java App <cs_username> <cs_password>";
 
@@ -156,11 +156,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Gets all the platforms of the user logged in.
-     *
-     * @return The list of platforms
-     */
     @Override
     public Platform[] get_platforms() {
         String query = String.format("SELECT p.pid, p.name FROM owned_platform op JOIN platform p ON op.pid = p.pid WHERE username = '%s'", currentUser.username());
@@ -180,12 +175,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Gets the platforms that the current game is on.
-     *
-     * @param game The game to access
-     * @return The platforms
-     */
     @Override
     public Platform[] get_game_platforms(Game game) {
         String q = String.format("""
@@ -208,12 +197,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Gets the total play time for all games in the collection.
-     *
-     * @param collection The collection
-     * @return Total play time
-     */
     @Override
     public Time total_playtime_collection(Collection collection) {
         String q = String.format("""
@@ -266,11 +249,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Gets all the collections the user has.
-     *
-     * @return The array of collections the user has
-     */
     @Override
     public Collection[] get_collections() {
         String q = String.format("SELECT collid FROM collection WHERE coll_username = '%s'", currentUser.username());
@@ -288,12 +266,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Gets a collection
-     *
-     * @param collid The Collection's id
-     * @return The matching Collection
-     */
     private Collection getCollection(int collid) {
         String gamesQuery = String.format("SELECT gid from game_collection WHERE collid = '%d'", collid);
         String collQuery = String.format("SELECT coll_username, coll_name FROM collection WHERE collid = '%d'", collid);
@@ -320,12 +292,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Gets all the collections the user has with the given name, case-insensitive.
-     *
-     * @param name The name
-     * @return Array of Collections.
-     */
     @Override
     public Collection[] get_collection_name(String name) {
         String q = String.format("""
@@ -346,14 +312,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Adds a game to a user's collection. Game and collection are confirmed
-     * as valid prior to the call of the function.
-     *
-     * @param collection The collection to add the game to
-     * @param game       The game to add to the collection
-     * @return The updated collection
-     */
     @Override
     public Collection collection_add(Collection collection, Game game) {
         String q = String.format("""
@@ -370,14 +328,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Removes a game from a user's collection. Game and collection are confirmed
-     * as valid prior to the call of the function.
-     *
-     * @param collection The collection to remove the game from
-     * @param game       The game to remove from the collection
-     * @return The updated collection
-     */
     @Override
     public Collection collection_remove(Collection collection, Game game) {
         String q = String.format("""
@@ -394,12 +344,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Deletes a collection from the user. Collection is confirmed as valid
-     * prior to the call of the function.
-     *
-     * @param collection The collection to be deleted
-     */
     @Override
     public void collection_delete(Collection collection) {
         String q = String.format("""
@@ -413,14 +357,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Rename a collection the user has. Collection is confirmed as valid
-     * prior to the call of the function.
-     *
-     * @param collection The collection to rename
-     * @param new_name   The new name
-     * @return The updated collection
-     */
     @Override
     public Collection collection_rename(Collection collection, String new_name) {
         String q = String.format("""
@@ -438,12 +374,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Creates a new collection for the user.
-     *
-     * @param name The name of the new collection
-     * @return The new empty collection
-     */
     @Override
     public Collection collection_create(String name) {
         String q = String.format("INSERT INTO collection (coll_username, coll_name) VALUES ('%s', '%s')", currentUser.username(), name);
@@ -466,13 +396,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Searches the database for games that have a substring of the
-     * name given.
-     *
-     * @param name The substring given
-     * @return Array of games containing the substring in the title
-     */
     @Override
     public Game[] search_game_name(String name) {
         String q = String.format("SELECT gid FROM game WHERE UPPER(title) = UPPER('%s')", name);
@@ -490,12 +413,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Searches the database for games that match a certain price.
-     *
-     * @param price The price of the game
-     * @return Array of games of the certain price
-     */
     @Override
     public Game[] search_game_price(double price) {
         String query = String.format("SELECT gid FROM game_platform WHERE price = %.2f", price);
@@ -513,12 +430,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Searches the database for games on a specified platform.
-     *
-     * @param platform The platform
-     * @return Array of games on a platform
-     */
     @Override
     public Game[] search_game_platform(String platform) {
         String q = String.format("SELECT gid FROM game_platform\n" +
@@ -538,13 +449,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Searches the database for games released on a specified
-     * date.
-     *
-     * @param release_date The release date
-     * @return Array of games released on the date
-     */
     @Override
     public Game[] search_game_release_date(Date release_date) {
         String query = String.format("SELECT gid FROM game_platform WHERE release_date = '%s'", release_date.toString());
@@ -562,12 +466,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Searches the database for games by a specified developer.
-     *
-     * @param developer The developer
-     * @return Array of games by developer
-     */
     @Override
     public Game[] search_game_developer(String developer) {
         String q = String.format("""
@@ -588,12 +486,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Searches the database for games in a specified genre.
-     *
-     * @param genre The genre
-     * @return Array of games in genre.
-     */
     @Override
     public Game[] search_game_genre(String genre) {
         String q = String.format("""
@@ -614,14 +506,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * User rates a game on a scale of 1-5 stars. Game is
-     * assumed valid prior to function call.
-     *
-     * @param game   The game to be rated
-     * @param rating The star rating
-     * @return The game with updated rating
-     */
     @Override
     public Game rate(Game game, int rating) {
         if (!(rating >= 0 && rating <= 5)) {
@@ -639,14 +523,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * User plays a game for a certain amount of time and
-     * the time played is added to user stats. Game is
-     * assumed valid prior to function call.
-     *
-     * @param game The game played
-     * @param time The time played
-     */
     @Override
     public void play(Game game, Time time) {
         Date current_date = new Date(new java.util.Date().getTime());
@@ -660,12 +536,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Searches the database for a user based on their email.
-     *
-     * @param email The user's email
-     * @return The user information if found, null if not
-     */
     @Override
     public User[] search_users(String email) {
         String query = String.format("SELECT * FROM \"user\" WHERE email = '%s'", email);
@@ -693,13 +563,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Adds a user as a friend. Friend to be added is assumed
-     * as valid user and not the user's friend already prior to
-     * the function call.
-     *
-     * @param friend The friend to add
-     */
     @Override
     public void add_friend(User friend) {
         String q = String.format("""
@@ -714,13 +577,6 @@ public class App implements IApp {
         }
     }
 
-    /**
-     * Removes a user as a friend. Friend to be added is assumed
-     * as valid user and already the user's friend prior to the
-     * function call.
-     *
-     * @param friend The friend to remove
-     */
     @Override
     public void delete_friend(User friend) {
         String q = String.format("""
@@ -735,6 +591,7 @@ public class App implements IApp {
         }
     }
 
+    @Override
     public User[] search_friends() {
         String query = String.format("SELECT friend FROM friends WHERE \"user\" = '%s'", currentUser.username());
         try {
@@ -751,6 +608,12 @@ public class App implements IApp {
         }
     }
 
+    /**
+     * Gets a user from the database with a given username
+     * @param username The username of the user
+     * @return The User record if it exists, null if username not present
+     * in database
+     */
     private User getUser(String username) {
         String query = String.format("SELECT * FROM \"user\" WHERE username = '%s'", username);
         try {
