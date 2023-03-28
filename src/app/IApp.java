@@ -227,6 +227,16 @@ public interface IApp {
      */
     User[] search_friends();
 
+    /**
+     * Adds a platform to your collection. Platform is assumed valid before execution.
+     * @param platform The platform to buy
+     */
+    void buy_platform(Platform platform);
 
+    /**
+     * Gets all the total platforms by name
+     * @return Array of all platforms by name
+     */
+    Platform[] get_all_platform_name(String platform_name);
 
 }

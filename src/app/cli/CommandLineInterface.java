@@ -1,6 +1,5 @@
 package app.cli;
 
-import java.sql.Array;
 import java.sql.Time;
 import java.sql.Date;
 import java.util.Arrays;
@@ -9,59 +8,88 @@ import java.util.Scanner;
 import java.util.ArrayList;
 
 import app.IApp;
-import app.model.Collection;
-import app.model.Game;
-import app.model.Platform;
-import app.model.User;
+import app.model.*;
 
 /**
  * A command line interface to this database application
  */
-public class CommandLineInterface{
+public class CommandLineInterface {
 
-    /** Constant prompt for user input */
+    /**
+     * Constant prompt for user input
+     */
     private final static String PROMPT = "pdm320_11 interface> ";
 
-    /** Error message for unrecognized command */
+    /**
+     * Error message for unrecognized command
+     */
     private final static String ERR_MESSAGE = "Unrecognized command, Type \"help\" to get list of commands";
 
-    /** Exit message for when exit command is called */
+    /**
+     * Exit message for when exit command is called
+     */
     private final static String EXIT_MESSAGE = "Exiting command line interface";
 
-    /** Command to log in as a user */
+    /**
+     * Command to log in as a user
+     */
     private final static String LOGIN = "LOGIN";
 
-    /** Command to log out as a user and exit */
+    /**
+     * Command to log out as a user and exit
+     */
     private final static String LOGOUT = "LOGOUT";
 
-    /** Command to sign up as a user */
+    /**
+     * Command to sign up as a user
+     */
     private final static String SIGNUP = "SIGNUP";
 
-    /** Command to list all of user's collections */
+    /**
+     * Command to list all of user's collections
+     */
     private final static String GET_COLLECTIONS = "GET_COLLECTIONS";
 
-    /** Command to add a game to a user's collection */
+    /**
+     * Command to add a game to a user's collection
+     */
     private final static String COLLECTION_ADD = "ADD_COLLECTION";
 
-    /** Command to remove a game from a user's collection */
+    /**
+     * Command to remove a game from a user's collection
+     */
     private final static String COLLECTION_REMOVE = "REMOVE_COLLECTION";
 
-    /** Command to delete a user's collection */
+    /**
+     * Command to delete a user's collection
+     */
     private final static String COLLECTION_DELETE = "DELETE_COLLECTION";
 
-    /** Command to rename a user's collection */
+    /**
+     * Command to rename a user's collection
+     */
     private final static String COLLECTION_RENAME = "RENAME_COLLECTION";
 
-    /** Command to create a new collection */
+    /**
+     * Command to create a new collection
+     */
     private final static String COLLECTION_CREATE = "CREATE_COLLECTION";
 
-    /** Declares current user */
+    private final static String BUY_PLATFORM = "BUY_PLATFORM";
+
+    /**
+     * Declares current user
+     */
     private User user;
 
-    /** Command to rate a game */
+    /**
+     * Command to rate a game
+     */
     private final static String RATE = "RATE";
 
-    /** The app this CLI communicates with */
+    /**
+     * The app this CLI communicates with
+     */
     private IApp app;
 
     private void printCollection(Collection collection) {
@@ -70,45 +98,60 @@ public class CommandLineInterface{
         System.out.println("Play time:\t" + app.total_playtime_collection(collection) + "\n");
     }
 
-    private void printFullGame(Game game){
+    private void printFullGame(Game game) {
         System.out.println("\nName: " + game.title());
-        System.out.println("price: " + game.price());
-        System.out.println("playtime: " + game.playtime());
+        System.out.printf("Price: $%.2f\n", game.price());
+        System.out.print("Playtime: ");
+        if (game.playtime() == null) System.out.println("0:00:00");
+        else System.out.println(game.playtime());
 
-        System.out.print("platforms: [ ");
+        System.out.print("Platforms: ");
         Platform[] platforms = app.get_game_platforms(game);
-        for(int i = 0; i<platforms.length;i++){
-            System.out.print(platforms[i]+ " ");
+        if (platforms.length == 0) System.out.println("None");
+        for (int i = 0; i < platforms.length; i++) {
+            if (i == platforms.length - 1) {
+                System.out.println(platforms[i].name());
+                break;
+            }
+            System.out.print(platforms[i].name() + ", ");
         }
-        System.out.println("]");
 
-        System.out.println("publisher: " + game.publisher());
-        System.out.println("developer: " + game.developer());
-        System.out.print("genres: [ ");
-        for(int i = 0; i<game.genres().length;i++){
-            System.out.print(game.genres()[i]+ " ");
+        System.out.println("Publisher: " + game.publisher().name());
+        System.out.println("Developer: " + game.developer().name());
+        System.out.print("Genres: ");
+        if (game.genres().length == 0) System.out.println("None");
+        for (int i = 0; i < game.genres().length; i++) {
+            if (i == game.genres().length - 1) {
+                System.out.println(game.genres()[i]);
+                break;
+            }
+            System.out.print(game.genres()[i] + ", ");
         }
-        System.out.println("]");
-        System.out.println("date_released: " + game.date_release());
-        System.out.print("ratings: [ ");
-        for(int i = 0; i<game.ratings().length;i++){
-            System.out.print(game.ratings()[i]+ " ");
+        System.out.println("Date Released: " + game.date_release());
+        System.out.print("Ratings: ");
+        if (game.ratings().length == 0) System.out.println("None");
+        for (int i = 0; i < game.ratings().length; i++) {
+            if (i == game.ratings().length - 1) {
+                System.out.println(game.ratings()[i]);
+                break;
+            }
+            System.out.print(game.ratings()[i] + ", ");
         }
-        System.out.println("]\n");
+        System.out.println();
 
     }
 
     private void get_collections() {
         Collection[] collections = app.get_collections();
-        if(collections.length == 0) {
+        if (collections.length == 0) {
             System.out.println("You do not have any collections.");
             return;
         }
-        for(int i = 0; i < collections.length; ++i){
-            for(int j = i+1; j < collections.length; ++j){
+        for (int i = 0; i < collections.length; ++i) {
+            for (int j = i + 1; j < collections.length; ++j) {
                 Collection first = collections[i];
                 Collection second = collections[j];
-                if(first.coll_name().compareTo(second.coll_name()) > 0) {
+                if (first.coll_name().compareTo(second.coll_name()) > 0) {
                     collections[i] = second;
                     collections[j] = first;
                 }
@@ -126,58 +169,58 @@ public class CommandLineInterface{
 
         Collection[] collections_list = app.get_collection_name(coll_name);
 
-        if(collections_list.length == 0) {
+        if (collections_list.length == 0) {
             System.out.println("You do not have a collection with that name.");
             return;
         }
         Collection selected_coll = collections_list[0];
 
-        if(collections_list.length > 1) {
+        if (collections_list.length > 1) {
             System.out.println("Which collection would you like to add the game to (enter the number)?");
-            for(int i = 0; i < collections_list.length; ++i) {
+            for (int i = 0; i < collections_list.length; ++i) {
                 Collection curr_coll = collections_list[i];
-                System.out.println(i+1);
+                System.out.println(i + 1);
                 printCollection(curr_coll);
             }
             int input_to_int;
             do {
                 input = in.nextLine();
                 input_to_int = Integer.parseInt(input);
-                if(input_to_int > 0 && input_to_int < collections_list.length) {
+                if (input_to_int > 0 && input_to_int < collections_list.length) {
                     break;
                 }
                 System.out.println("Invalid collection number. Try again.");
             } while (true);
 
-            selected_coll = collections_list[input_to_int-1];
+            selected_coll = collections_list[input_to_int - 1];
         }
         Game[] game_list = app.search_game_name(game_name);
 
-        if(game_list.length == 0) {
+        if (game_list.length == 0) {
             System.out.println("There is not a game with that name.");
             return;
         }
 
         Game selected_game = game_list[0];
-        if(game_list.length > 1) {
+        if (game_list.length > 1) {
             System.out.println("Which game would you like to add (enter the number)?");
-            for(int i = 0; i < game_list.length; ++i) {
+            for (int i = 0; i < game_list.length; ++i) {
                 Game curr_game = game_list[i];
-                System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                        curr_game.playtime());
+                System.out.println(i + 1 + ":");
+                printFullGame(curr_game);
             }
 
             int input_to_int;
             do {
                 input = in.nextLine();
                 input_to_int = Integer.parseInt(input);
-                if(input_to_int > 0 && input_to_int < game_list.length) {
+                if (input_to_int > 0 && input_to_int < game_list.length) {
                     break;
                 }
                 System.out.println("Invalid game number. Try again.");
             } while (true);
 
-            selected_game = game_list[input_to_int-1];
+            selected_game = game_list[input_to_int - 1];
         }
 
         Platform[] user_platforms = app.get_platforms();
@@ -195,16 +238,16 @@ public class CommandLineInterface{
             }
         }
 
-        if(!platform_match) {
+        if (!platform_match) {
             System.out.println("*WARNING*\nYou do not own the platform this game is on. Proceed (y/n)?");
             input = in.nextLine();
 
-            if(input.toLowerCase().charAt(0) == 'n') {
+            if (input.toLowerCase().charAt(0) == 'n') {
                 return;
             }
         }
 
-        Collection updated_coll  = app.collection_add(selected_coll, selected_game);
+        Collection updated_coll = app.collection_add(selected_coll, selected_game);
         System.out.println("Updated collection:");
         printCollection(updated_coll);
     }
@@ -214,17 +257,17 @@ public class CommandLineInterface{
         String input;
         Collection[] collections_list = app.get_collection_name(coll_name);
 
-        if(collections_list.length == 0) {
+        if (collections_list.length == 0) {
             System.out.println("You do not have a collection with that name.");
             return;
         }
         Collection selected_coll = collections_list[0];
 
-        if(collections_list.length > 1) {
+        if (collections_list.length > 1) {
             System.out.println("Which collection would you like to remove the game from (enter the number)?");
-            for(int i = 0; i < collections_list.length; ++i) {
+            for (int i = 0; i < collections_list.length; ++i) {
                 Collection curr_coll = collections_list[i];
-                System.out.println(i+1);
+                System.out.println(i + 1);
                 printCollection(curr_coll);
             }
 
@@ -232,13 +275,13 @@ public class CommandLineInterface{
             do {
                 input = in.nextLine();
                 input_to_int = Integer.parseInt(input);
-                if(input_to_int > 0 && input_to_int < collections_list.length) {
+                if (input_to_int > 0 && input_to_int < collections_list.length) {
                     break;
                 }
                 System.out.println("Invalid collection number. Try again.");
             } while (true);
 
-            selected_coll = collections_list[input_to_int-1];
+            selected_coll = collections_list[input_to_int - 1];
         }
 
         Game[] game_list_init = selected_coll.games();
@@ -251,34 +294,34 @@ public class CommandLineInterface{
             }
         }
 
-        if(game_list.size() == 0) {
+        if (game_list.size() == 0) {
             System.out.println("There is not a game with that name in your collection.");
             return;
         }
 
         Game selected_game = game_list.get(0);
-        if(game_list.size() > 1) {
+        if (game_list.size() > 1) {
             System.out.println("Which game would you like to remove (enter the number)?");
-            for(int i = 0; i < game_list.size(); ++i) {
+            for (int i = 0; i < game_list.size(); ++i) {
                 Game curr_game = game_list.get(i);
-                System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                        curr_game.playtime());
+                System.out.println(i + 1 + ":");
+                printFullGame(curr_game);
             }
 
             int input_to_int;
             do {
                 input = in.nextLine();
                 input_to_int = Integer.parseInt(input);
-                if(input_to_int > 0 && input_to_int < game_list.size()) {
+                if (input_to_int > 0 && input_to_int < game_list.size()) {
                     break;
                 }
                 System.out.println("Invalid game number. Try again.");
             } while (true);
 
-            selected_game = game_list.get(input_to_int-1);
+            selected_game = game_list.get(input_to_int - 1);
         }
 
-        Collection updated_coll  = app.collection_remove(selected_coll, selected_game);
+        Collection updated_coll = app.collection_remove(selected_coll, selected_game);
         System.out.println("Updated collection:");
         printCollection(updated_coll);
     }
@@ -288,17 +331,17 @@ public class CommandLineInterface{
         String input;
         Collection[] collections_list = app.get_collection_name(coll_name);
 
-        if(collections_list.length == 0) {
+        if (collections_list.length == 0) {
             System.out.println("You do not have a collection with that name.");
             return;
         }
         Collection selected_coll = collections_list[0];
 
-        if(collections_list.length > 1) {
+        if (collections_list.length > 1) {
             System.out.println("Which collection would you like to delete (enter the number)?");
-            for(int i = 0; i < collections_list.length; ++i) {
+            for (int i = 0; i < collections_list.length; ++i) {
                 Collection curr_coll = collections_list[i];
-                System.out.println(i+1);
+                System.out.println(i + 1);
                 printCollection(curr_coll);
             }
 
@@ -306,13 +349,13 @@ public class CommandLineInterface{
             do {
                 input = in.nextLine();
                 input_to_int = Integer.parseInt(input);
-                if(input_to_int > 0 && input_to_int < collections_list.length) {
+                if (input_to_int > 0 && input_to_int < collections_list.length) {
                     break;
                 }
                 System.out.println("Invalid collection number. Try again.");
             } while (true);
 
-            selected_coll = collections_list[input_to_int-1];
+            selected_coll = collections_list[input_to_int - 1];
         }
 
         app.collection_delete(selected_coll);
@@ -324,17 +367,17 @@ public class CommandLineInterface{
         String input;
         Collection[] collections_list = app.get_collection_name(old_coll_name);
 
-        if(collections_list.length == 0) {
+        if (collections_list.length == 0) {
             System.out.println("You do not have a collection with that name.");
             return;
         }
         Collection selected_coll = collections_list[0];
 
-        if(collections_list.length > 1) {
+        if (collections_list.length > 1) {
             System.out.println("Which collection would you like to rename (enter the number)?");
-            for(int i = 0; i < collections_list.length; ++i) {
+            for (int i = 0; i < collections_list.length; ++i) {
                 Collection curr_coll = collections_list[i];
-                System.out.println(i+1);
+                System.out.println(i + 1);
                 printCollection(curr_coll);
             }
 
@@ -342,13 +385,13 @@ public class CommandLineInterface{
             do {
                 input = in.nextLine();
                 input_to_int = Integer.parseInt(input);
-                if(input_to_int > 0 && input_to_int < collections_list.length) {
+                if (input_to_int > 0 && input_to_int < collections_list.length) {
                     break;
                 }
                 System.out.println("Invalid collection number. Try again.");
             } while (true);
 
-            selected_coll = collections_list[input_to_int-1];
+            selected_coll = collections_list[input_to_int - 1];
         }
 
         Collection renamed_coll = app.collection_rename(selected_coll, new_coll_name);
@@ -369,17 +412,17 @@ public class CommandLineInterface{
         String input;
         Game[] game_list = app.search_game_name(coll_name);
 
-        if(game_list.length == 0) {
+        if (game_list.length == 0) {
             System.out.println("There is not a game with that name.");
             return;
         }
 
         Game selected_game = game_list[0];
-        if(game_list.length > 1) {
+        if (game_list.length > 1) {
             System.out.println("Which game would you like to rate (enter the number)?");
-            for(int i = 0; i < game_list.length; ++i) {
+            for (int i = 0; i < game_list.length; ++i) {
                 Game curr_game = game_list[i];
-                System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
+                System.out.println(i + 1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
                         curr_game.playtime());
             }
 
@@ -387,70 +430,71 @@ public class CommandLineInterface{
             do {
                 input = in.nextLine();
                 input_to_int = Integer.parseInt(input);
-                if(input_to_int > 0 && input_to_int < game_list.length) {
+                if (input_to_int > 0 && input_to_int < game_list.length) {
                     break;
                 }
                 System.out.println("Invalid game number. Try again.");
             } while (true);
 
-            selected_game = game_list[input_to_int-1];
+            selected_game = game_list[input_to_int - 1];
         }
 
         app.rate(selected_game, Integer.parseInt(rating));
 
         System.out.println("Successfully submitted rating.");
     }
+
     private void play(String coll_name, String time) {
         int total_minutes = Integer.parseInt(time);
         int hour = total_minutes / 60;
         int minutes = total_minutes % 60;
-        Time run_time = new Time(hour,minutes,0);
+        Time run_time = new Time(hour, minutes, 0);
         Scanner in = new Scanner(System.in);
         String input;
         Game[] game_list = app.search_game_name(coll_name);
 
-        if(game_list.length == 0) {
+        if (game_list.length == 0) {
             System.out.println("There is not a game with that name.");
-        }
-        else {
+        } else {
             Game selected_game = game_list[0];
-            if(game_list.length > 1) {
+            if (game_list.length > 1) {
                 System.out.println("Which game would you like to play (enter the number)?");
-                for(int i = 0; i < game_list.length; ++i) {
+                for (int i = 0; i < game_list.length; ++i) {
                     Game curr_game = game_list[i];
-                    System.out.println(i+1 + ".\tName: " + curr_game.title() + "\n\tPlay time: " +
-                            curr_game.playtime());
+                    System.out.println(i + 1 + ":");
+                    printFullGame(curr_game);
                 }
 
                 int input_to_int;
-                do{
+                do {
                     input = in.nextLine();
                     input_to_int = Integer.parseInt(input);
-                    if(input_to_int > 0 && input_to_int < game_list.length) {
+                    if (input_to_int > 0 && input_to_int < game_list.length) {
                         break;
                     }
                     System.out.println("Invalid game number. Try again.");
                 } while (true);
-                selected_game = game_list[input_to_int-1];
+                selected_game = game_list[input_to_int - 1];
             }
-            app.play(selected_game,run_time);
+            app.play(selected_game, run_time);
         }
     }
+
     private void search_user(String coll_name) {
         User[] user_list = app.search_users(coll_name);
 
-        if(user_list.length==0) {
+        if (user_list.length == 0) {
             System.out.println("There no users linked to this email address");
 
-        }
-        else{
+        } else {
             System.out.println("Here's all the Usernames associated with this email");
-            for(int i = 0; i < user_list.length; ++i) {
+            for (int i = 0; i < user_list.length; ++i) {
                 User curr_user = user_list[i];
-                System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+                System.out.println(i + 1 + ".\tUsername: " + curr_user.username());
             }
         }
     }
+
     private void add_friend(String coll_name) {
         Scanner in = new Scanner(System.in);
         String input;
@@ -480,12 +524,12 @@ public class CommandLineInterface{
                 selected_user = user_list[input_to_int - 1];
             }
             boolean can_add = true;
-            for(int i = 0; i<friends.length;i++){
-                if(selected_user.equals(friends[i])){
+            for (int i = 0; i < friends.length; i++) {
+                if (selected_user.equals(friends[i])) {
                     can_add = false;
                 }
             }
-            if(can_add) {
+            if (can_add) {
                 app.add_friend(selected_user);
                 System.out.println(selected_user.username() + "added to your friend list");
             } else {
@@ -493,6 +537,7 @@ public class CommandLineInterface{
             }
         }
     }
+
     private void remove_friend(String coll_name) {
         Scanner in = new Scanner(System.in);
         String input;
@@ -501,18 +546,18 @@ public class CommandLineInterface{
             System.out.println("There are no friends linked to this email address");
         } else {
             ArrayList<User> removable_users = new ArrayList<>();
-            for(int i = 0; i < user_list.length; i++) {
+            for (int i = 0; i < user_list.length; i++) {
                 String curr_user_email = user_list[i].email();
                 if (curr_user_email.equals(coll_name)) {
                     removable_users.add(user_list[i]);
                 }
             }
-            if (removable_users.size()>0){
+            if (removable_users.size() > 0) {
                 User selected_user = removable_users.get(0);
                 System.out.println("Which friend would you like to remove (enter the number)?");
-                for(int i = 0; i < removable_users.size(); ++i) {
+                for (int i = 0; i < removable_users.size(); ++i) {
                     User curr_user = removable_users.get(i);
-                    System.out.println(i+1 + ".\tUsername: " + curr_user.username());
+                    System.out.println(i + 1 + ".\tUsername: " + curr_user.username());
                 }
                 int input_to_int;
                 do {
@@ -523,7 +568,7 @@ public class CommandLineInterface{
                     }
                     System.out.println("Invalid user number. Try again.");
                 } while (true);
-                selected_user = removable_users.get(input_to_int-1);
+                selected_user = removable_users.get(input_to_int - 1);
                 app.delete_friend(selected_user);
                 System.out.println(selected_user.username() + " removed from your friend list");
             } else {
@@ -532,7 +577,8 @@ public class CommandLineInterface{
         }
 
     }
-    private void search_game_usage(){
+
+    private void search_game_usage() {
         System.out.println("\nUsage: ");
         System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
         System.out.println("search_val      value being searched");
@@ -542,6 +588,7 @@ public class CommandLineInterface{
         System.out.println("                {title},{price},{genre},{date}");
         System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
     }
+
     private void search_game(String search_val, String search_type, String sort_val, String descend) {
 
         ArrayList<Game> games_list = new ArrayList<>();
@@ -566,15 +613,15 @@ public class CommandLineInterface{
         } else if (search_type.equals("genre")) {
             Game[] game_array = app.search_game_genre(search_val);
             games_list = new ArrayList<>(Arrays.stream(game_array).toList());
-        } else{
+        } else {
             correct_format = false;
         }
-        if(correct_format){
+        if (correct_format) {
             Comparator<Game> default_comparator = new Comparator<Game>() {
                 @Override
                 public int compare(Game o1, Game o2) {
                     int result = o1.title().compareTo(o2.title());
-                    if(result == 0){
+                    if (result == 0) {
                         return o1.date_release().compareTo(o2.date_release());
                     } else {
                         return result;
@@ -613,9 +660,9 @@ public class CommandLineInterface{
                     int result = 0;
                     int o1_genres = o1.genres().length;
                     int o2_genres = o2.genres().length;
-                    for(int i = 0; (i<o1_genres) && (i<o2_genres);i++){
+                    for (int i = 0; (i < o1_genres) && (i < o2_genres); i++) {
                         result = o1.genres()[i].compareTo(o2.genres()[i]);
-                        if(result != 0){
+                        if (result != 0) {
                             return result;
                         }
                     }
@@ -652,47 +699,63 @@ public class CommandLineInterface{
                 System.out.println("Unknown sort argument: default sort used");
                 games_list.sort(default_comparator);
             }
-            for(int i = 0; i < games_list.size(); i++) {
+            for (int i = 0; i < games_list.size(); i++) {
                 printFullGame(games_list.get(i));
             }
-        }
-        else{
+        } else {
             search_game_usage();
         }
     }
-    private void search_game(String search_val, String search_type, String sort_val){
-        search_game(search_val,search_type,sort_val,"A");
-    }
-    private void search_game(String search_val, String search_type){
-        search_game(search_val,search_type,"default","A");
+
+    private void search_game(String search_val, String search_type, String sort_val) {
+        search_game(search_val, search_type, sort_val, "A");
     }
 
+    private void search_game(String search_val, String search_type) {
+        search_game(search_val, search_type, "default", "A");
+    }
+
+    private void buy_platform(String platform_name) {
+
+    }
 
 
-
-    /** command to play a game */
+    /**
+     * command to play a game
+     */
     private final static String PLAY = "PLAY";
 
-    /** command to search a friend */
+    /**
+     * command to search a friend
+     */
     private final static String SEARCH_USER = "SEARCH_USER";
 
-    /** command to add a friend */
+    /**
+     * command to add a friend
+     */
     private final static String ADD_FRIEND = "ADD_FRIEND";
 
-    /** command to remove a friend */
+    /**
+     * command to remove a friend
+     */
     private final static String REMOVE_FRIEND = "REMOVE_FRIEND";
 
-    /** command to search for a list of games */
+    /**
+     * command to search for a list of games
+     */
     private final static String SEARCH_GAME = "SEARCH_GAME";
-    /** command to see list of usable commands */
+    /**
+     * command to see list of usable commands
+     */
     private final static String HELP = "HELP";
 
     /**
      * Constructs a CLI by creating the application it uses as a backend
+     *
      * @param cs_username Credentials for logging into starbug server
      * @param cs_password ...
      */
-    public CommandLineInterface(String cs_username, String cs_password){
+    public CommandLineInterface(String cs_username, String cs_password) {
         this.app = IApp.createApp(cs_username, cs_password);
     }
 
@@ -701,7 +764,7 @@ public class CommandLineInterface{
      * When the exit command is given it closes this class's resources and calls
      * .exit() on the database app.
      */
-    public void launch(){
+    public void launch() {
         Scanner in = new Scanner(System.in);
         boolean exit = false;
 
@@ -741,12 +804,12 @@ public class CommandLineInterface{
 
         System.out.println("Welcome " + this.user.firstname() + "!");
 
-        while(!exit){
+        while (!exit) {
             System.out.print(">\t");
             String input = in.nextLine();
             String[] tokens = input.strip().split("\\s+");
 
-            switch(tokens[0].toUpperCase()){
+            switch (tokens[0].toUpperCase()) {
                 case LOGOUT -> {
                     app.logOut();
                     System.out.println(EXIT_MESSAGE);
@@ -754,11 +817,11 @@ public class CommandLineInterface{
                 }
 
                 case GET_COLLECTIONS -> {
-                    if(!app.isUserLoggedIn()) {
+                    if (!app.isUserLoggedIn()) {
                         System.out.println("You are not logged in, please log in first.");
                     }
 
-                    if(tokens.length != 1) {
+                    if (tokens.length != 1) {
                         System.out.println("Usage: get_collections");
                         continue;
                     }
@@ -766,11 +829,11 @@ public class CommandLineInterface{
                 }
 
                 case COLLECTION_ADD -> {
-                    if(!app.isUserLoggedIn()) {
+                    if (!app.isUserLoggedIn()) {
                         System.out.println("You are not logged in, please log in first.");
                     }
 
-                    if(tokens.length != 3) {
+                    if (tokens.length != 3) {
                         System.out.println("Usage: add_collection collection-name game-name");
                         continue;
                     }
@@ -778,11 +841,11 @@ public class CommandLineInterface{
                 }
 
                 case COLLECTION_REMOVE -> {
-                    if(!app.isUserLoggedIn()) {
+                    if (!app.isUserLoggedIn()) {
                         System.out.println("You are not logged in, please log in first.");
                     }
 
-                    if(tokens.length != 3) {
+                    if (tokens.length != 3) {
                         System.out.println("Usage: remove_collection collection-name game-name");
                         continue;
                     }
@@ -790,11 +853,11 @@ public class CommandLineInterface{
                 }
 
                 case COLLECTION_DELETE -> {
-                    if(!app.isUserLoggedIn()) {
+                    if (!app.isUserLoggedIn()) {
                         System.out.println("You are not logged in, please log in first.");
                     }
 
-                    if(tokens.length != 2) {
+                    if (tokens.length != 2) {
                         System.out.println("Usage: delete_collection collection-name");
                         continue;
                     }
@@ -802,11 +865,11 @@ public class CommandLineInterface{
                 }
 
                 case COLLECTION_RENAME -> {
-                    if(!app.isUserLoggedIn()) {
+                    if (!app.isUserLoggedIn()) {
                         System.out.println("You are not logged in, please log in first.");
                     }
 
-                    if(tokens.length != 3) {
+                    if (tokens.length != 3) {
                         System.out.println("Usage: rename_collection old-collection-name new-collection-name");
                         continue;
                     }
@@ -814,11 +877,11 @@ public class CommandLineInterface{
                 }
 
                 case COLLECTION_CREATE -> {
-                    if(!app.isUserLoggedIn()) {
+                    if (!app.isUserLoggedIn()) {
                         System.out.println("You are not logged in, please log in first.");
                     }
 
-                    if(tokens.length != 2) {
+                    if (tokens.length != 2) {
                         System.out.println("Usage: create_collection collection-name");
                         continue;
                     }
@@ -826,11 +889,11 @@ public class CommandLineInterface{
                 }
 
                 case RATE -> {
-                    if(!app.isUserLoggedIn()) {
+                    if (!app.isUserLoggedIn()) {
                         System.out.println("You are not logged in, please log in first.");
                     }
 
-                    if(tokens.length != 3) {
+                    if (tokens.length != 3) {
                         System.out.println("Usage: rate game-name rating");
                         continue;
                     }
@@ -838,14 +901,14 @@ public class CommandLineInterface{
                 }//add more cases
 
                 case PLAY -> {
-                    if(tokens.length <3){
+                    if (tokens.length < 3) {
                         System.out.println("\nUsage:");
                         System.out.println("PLAY { game | time }");
                         System.out.println("game            game to be played");
                         System.out.println("time            time in minutes to be added\n"); //Might change later to a more useful format that milliseconds
                         continue;
                     }
-                    play(tokens[1],tokens[2]);
+                    play(tokens[1], tokens[2]);
                 }
 
                 case SEARCH_USER -> {
@@ -859,7 +922,7 @@ public class CommandLineInterface{
                 }
 
                 case ADD_FRIEND -> {
-                    if(tokens.length <2){
+                    if (tokens.length < 2) {
                         System.out.println("\nUsage:");
                         System.out.println("ADD_FRIEND { email }");
                         System.out.println("email           email that the account is associated with to be added\n");
@@ -869,7 +932,7 @@ public class CommandLineInterface{
                 }
 
                 case REMOVE_FRIEND -> {
-                    if(tokens.length <2){
+                    if (tokens.length < 2) {
                         System.out.println("\nUsage:");
                         System.out.println("REMOVE_FRIEND { email }");
                         System.out.println("email           email that the account is associated with to be removed\n");
@@ -879,19 +942,26 @@ public class CommandLineInterface{
                 }
 
                 case SEARCH_GAME -> {
-                    if(tokens.length<3){
+                    if (tokens.length < 3) {
                         search_game_usage();
-                    }
-                    else if (tokens.length==3){
-                        search_game(tokens[1],tokens[2]);
-                    } else if (tokens.length==4){
-                        search_game(tokens[1],tokens[2],tokens[3]);
-                    } else if (tokens.length==5){
-                        search_game(tokens[1],tokens[2],tokens[3],tokens[4]);
+                    } else if (tokens.length == 3) {
+                        search_game(tokens[1], tokens[2]);
+                    } else if (tokens.length == 4) {
+                        search_game(tokens[1], tokens[2], tokens[3]);
+                    } else if (tokens.length == 5) {
+                        search_game(tokens[1], tokens[2], tokens[3], tokens[4]);
                     }
                 }
 
-                case HELP  -> {
+                case BUY_PLATFORM -> {
+                    if (tokens.length != 2) {
+                        System.out.println("Usage: buy_platform platform-name");
+                        continue;
+                    }
+                    buy_platform(tokens[1]);
+                }
+
+                case HELP -> {
                     System.out.println("\nFor a more in depth usage of each command, Enter the command with no arguments\n");  //Not universal true, will be changed based on feedback
                     System.out.println("\nCOMMAND                 DESCRIPTION\n");
                     System.out.println("login                   login to user account");
