@@ -1,5 +1,6 @@
 package app.model;
 
+import java.sql.ResultSet;
 import java.sql.Time;
 import java.sql.Date;
 
@@ -7,16 +8,16 @@ import java.sql.Date;
  * Class to store a Game
  */
 public class Game {
-        private int gid;
-        private String title;
-        private String esrb_rating;
-        private int[] ratings;
-        private String[] genres;
-        private Company developer;
-        private Company publisher;
-        private Time playtime;
-        private Date date_release;
-        private double price;
+    private int gid;
+    private String title;
+    private String esrb_rating;
+    private int[] ratings;
+    private String[] genres;
+    private Company developer;
+    private Company publisher;
+    private Time playtime;
+    private Date date_release;
+    private double price;
 
     public Game(int gid, String title, String esrb_rating, int[] ratings, String[] genres, Company developer, Company publisher, Time playtime, Date date_release, double price) {
         this.gid = gid;

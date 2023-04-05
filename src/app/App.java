@@ -21,7 +21,7 @@ public class App implements IApp {
     /**
      * Usage method for running this program
      */
-    private final static String USAGE = "Usage: java App <cs_username> <cs_password>";
+    protected final static String USAGE = "Usage: java App <cs_username> <cs_password>";
 
     /**
      * Initial message to user
@@ -36,7 +36,7 @@ public class App implements IApp {
     /**
      * The connection to the server, SQL statements are executed via this variable
      */
-    private Connection conn;
+    protected Connection conn;
 
     /**
      * The SSH session on the server
@@ -60,7 +60,6 @@ public class App implements IApp {
         int lport = 5432;
         String rhost = "starbug.cs.rit.edu";
         int rport = 5432;
-
         String driverName = "org.postgresql.Driver";
         try {
             java.util.Properties config = new java.util.Properties();
@@ -94,6 +93,22 @@ public class App implements IApp {
         //TODO do some more stuff
 
         //comment for test commit
+    }
+
+    /**
+     * Closes the connection.
+     */
+    public void close() {
+        try {
+            System.out.println("Closing database connection...");
+            conn.close();
+            System.out.println("Closed database connection.");
+            System.out.println("Stopping SSH tunnel...");
+            session.disconnect();
+            System.out.println("Stopped SSH tunnel.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -1026,7 +1041,7 @@ public class App implements IApp {
      * @param gid The game's id
      * @return The matching Game
      */
-    private Game getGame(int gid) {
+    protected Game getGame(int gid) {
         String query = String.format("""
                 SELECT title, esrb_rating from game
                     WHERE gid = '%d'""", gid);
