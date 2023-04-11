@@ -92,12 +92,51 @@ public class CommandLineInterface {
      */
     private IApp app;
 
+    /**
+     * command to play a game
+     */
+    private final static String PLAY = "PLAY";
+
+    /**
+     * command to search a friend
+     */
+    private final static String SEARCH_USER = "SEARCH_USER";
+
+    /**
+     * command to add a friend
+     */
+    private final static String ADD_FRIEND = "ADD_FRIEND";
+
+    /**
+     * command to remove a friend
+     */
+    private final static String REMOVE_FRIEND = "REMOVE_FRIEND";
+
+    /**
+     * command to search for a list of games
+     */
+    private final static String SEARCH_GAME = "SEARCH_GAME";
+    /**
+     * command to see list of usable commands
+     */
+    private final static String HELP = "HELP";
+
+    /**
+     * print information of provided collection
+     *
+     * @param collection collection object to be printed
+     */
     private void printCollection(Collection collection) {
         System.out.println("\nName:\t" + collection.coll_name());
         System.out.println("# of games\t" + collection.games().length);
         System.out.println("Play time:\t" + app.total_playtime_collection(collection) + "\n");
     }
 
+    /**
+     * prints information of provided game
+     *
+     * @param game game object to be printed
+     */
     private void printFullGame(Game game) {
         System.out.println("\nName: " + game.title());
         System.out.printf("Price: $%.2f\n", game.price());
@@ -141,6 +180,9 @@ public class CommandLineInterface {
 
     }
 
+    /**
+     * Shows all Collections of user, only Switch statement without usage message
+     */
     private void get_collections() {
         Collection[] collections = app.get_collections();
         if (collections.length == 0) {
@@ -163,6 +205,14 @@ public class CommandLineInterface {
         System.out.println();
     }
 
+    /**
+     * Selects the collection and adds the game to it, If
+     * there is more than 1 game or collection that share the
+     * same name, Shows all of them and allows user to select correct one
+     *
+     * @param coll_name collection name wished to be modified
+     * @param game_name game wished to be added
+     */
     private void collection_add(String coll_name, String game_name) {
         Scanner in = new Scanner(System.in);
         String input;
@@ -252,6 +302,14 @@ public class CommandLineInterface {
         printCollection(updated_coll);
     }
 
+    /**
+     * removes the game from the collection given, if there is more than
+     * 1 game or collection with the same name, shows a list of all of them
+     * and allows user to select the correct one.
+     *
+     * @param coll_name collection name to be modified
+     * @param game_name game to be removed
+     */
     private void collection_remove(String coll_name, String game_name) {
         Scanner in = new Scanner(System.in);
         String input;
@@ -326,6 +384,13 @@ public class CommandLineInterface {
         printCollection(updated_coll);
     }
 
+    /**
+     * Deletes the collection with the given name. If there is more than one collection
+     * with the same name, shows user all of them and allows them to select the correct
+     * collection to be deleted.
+     *
+     * @param coll_name name of collection wished to be deleted
+     */
     private void collection_delete(String coll_name) {
         Scanner in = new Scanner(System.in);
         String input;
@@ -362,6 +427,14 @@ public class CommandLineInterface {
         System.out.println("Collection deleted.");
     }
 
+    /**
+     * renames the chosen collection to a new name. if there is more than
+     * one collection with the same name, shows a list of all the collections and
+     * allows the user to selec tthe correct collection tobe renamed.
+     *
+     * @param old_coll_name name of collection wished to be renamed
+     * @param new_coll_name new name for the collection
+     */
     private void collection_rename(String old_coll_name, String new_coll_name) {
         Scanner in = new Scanner(System.in);
         String input;
@@ -400,6 +473,11 @@ public class CommandLineInterface {
         printCollection(renamed_coll);
     }
 
+    /**
+     * creates a new collection for user logged-in
+     *
+     * @param coll_name name for the collection to be created
+     */
     private void collection_create(String coll_name) {
         Collection new_coll = app.collection_create(coll_name);
 
@@ -407,10 +485,18 @@ public class CommandLineInterface {
         printCollection(new_coll);
     }
 
-    private void rate(String coll_name, String rating) {
+    /**
+     * Rates the given game with a value of 1-5. If there is more than one game
+     * with the same name, shows a list of them and allows user to select the game
+     * to be rated.
+     *
+     * @param game_name game title to be searched for
+     * @param rating number value 1-5 to be used for a rating
+     */
+    private void rate(String game_name, String rating) {
         Scanner in = new Scanner(System.in);
         String input;
-        Game[] game_list = app.search_game_name(coll_name);
+        Game[] game_list = app.search_game_name(game_name);
 
         if (game_list.length == 0) {
             System.out.println("There is not a game with that name.");
@@ -444,14 +530,22 @@ public class CommandLineInterface {
         System.out.println("Successfully submitted rating.");
     }
 
-    private void play(String coll_name, String time) {
+    /**
+     * Plays the given game by time amount (in minutes) if there is more than one game
+     * with the same name, shows user a list of all game with the same name and allows
+     * them to select the correct one to be played.
+     *
+     * @param game_name Game title to be searched for
+     * @param time amount of time to be added as played, units are in minutes
+     */
+    private void play(String game_name, String time) {
         int total_minutes = Integer.parseInt(time);
         int hour = total_minutes / 60;
         int minutes = total_minutes % 60;
         Time run_time = new Time(hour, minutes, 0);
         Scanner in = new Scanner(System.in);
         String input;
-        Game[] game_list = app.search_game_name(coll_name);
+        Game[] game_list = app.search_game_name(game_name);
 
         if (game_list.length == 0) {
             System.out.println("There is not a game with that name.");
@@ -480,8 +574,13 @@ public class CommandLineInterface {
         }
     }
 
-    private void search_user(String coll_name) {
-        User[] user_list = app.search_users(coll_name);
+    /**
+     * shows a list of users linked to provided email address
+     *
+     * @param user_email email address to be searched
+     */
+    private void search_user(String user_email) {
+        User[] user_list = app.search_users(user_email);
 
         if (user_list.length == 0) {
             System.out.println("There no users linked to this email address");
@@ -495,11 +594,18 @@ public class CommandLineInterface {
         }
     }
 
-    private void add_friend(String coll_name) {
+    /**
+     * Shows a list of users that are linked to the provided email address,
+     * then allows user to select the correct account by inserting the position value
+     * and adding them as a friend.
+     *
+     * @param friend_email Email address linked to account wished to be added as a friend
+     */
+    private void add_friend(String friend_email) {
         Scanner in = new Scanner(System.in);
         String input;
 
-        User[] user_list = app.search_users(coll_name);
+        User[] user_list = app.search_users(friend_email);
         User[] friends = app.search_friends();
 
         if (user_list.length == 0) {
@@ -538,7 +644,13 @@ public class CommandLineInterface {
         }
     }
 
-    private void remove_friend(String coll_name) {
+    /**
+     * Shows a list of friends that have the email address you had given, then allow
+     * the user to select the right user to be removed by inserting the position value
+     *
+     * @param friend_email email address linked to account, wished to be removed
+     */
+    private void remove_friend(String friend_email) {
         Scanner in = new Scanner(System.in);
         String input;
         User[] user_list = app.search_friends();
@@ -548,7 +660,7 @@ public class CommandLineInterface {
             ArrayList<User> removable_users = new ArrayList<>();
             for (int i = 0; i < user_list.length; i++) {
                 String curr_user_email = user_list[i].email();
-                if (curr_user_email.equals(coll_name)) {
+                if (curr_user_email.equals(friend_email)) {
                     removable_users.add(user_list[i]);
                 }
             }
@@ -578,6 +690,9 @@ public class CommandLineInterface {
 
     }
 
+    /**
+     * Shows the usage message for the search_games method
+     */
     private void search_game_usage() {
         System.out.println("\nUsage: ");
         System.out.println("SEARCH_GAME { search_val | search_type | sort_val | descend }");
@@ -589,6 +704,14 @@ public class CommandLineInterface {
         System.out.println("descend         makes sort into a descend if val=\"D\" otherwise stays ascended\n");
     }
 
+    /**
+     * Searches and shows a list of games with information about them that match the search_val
+     *
+     * @param search_val The string to be searched for
+     * @param search_type what information does the Search_val represents
+     * @param sort_val Sorting method for searched results
+     * @param descend "D" to descend the results, otherwise ascend
+     */
     private void search_game(String search_val, String search_type, String sort_val, String descend) {
 
         ArrayList<Game> games_list = new ArrayList<>();
@@ -707,10 +830,25 @@ public class CommandLineInterface {
         }
     }
 
+    /**
+     * Searches and shows a list of games with information about them that match the search_val
+     * results are always ascended
+     *
+     * @param search_val The string to be searched for
+     * @param search_type what information does the Search_val represents
+     * @param sort_val Sorting method for searched results
+     */
     private void search_game(String search_val, String search_type, String sort_val) {
         search_game(search_val, search_type, sort_val, "A");
     }
 
+    /**
+     * Searches and shows a list of games with information about them that match the search_val
+     * Sorted by the default sorting method
+     *
+     * @param search_val The string to be searched for
+     * @param search_type what information does the Search_val represents
+     */
     private void search_game(String search_val, String search_type) {
         search_game(search_val, search_type, "default", "A");
     }
@@ -720,34 +858,7 @@ public class CommandLineInterface {
     }
 
 
-    /**
-     * command to play a game
-     */
-    private final static String PLAY = "PLAY";
 
-    /**
-     * command to search a friend
-     */
-    private final static String SEARCH_USER = "SEARCH_USER";
-
-    /**
-     * command to add a friend
-     */
-    private final static String ADD_FRIEND = "ADD_FRIEND";
-
-    /**
-     * command to remove a friend
-     */
-    private final static String REMOVE_FRIEND = "REMOVE_FRIEND";
-
-    /**
-     * command to search for a list of games
-     */
-    private final static String SEARCH_GAME = "SEARCH_GAME";
-    /**
-     * command to see list of usable commands
-     */
-    private final static String HELP = "HELP";
 
     /**
      * Constructs a CLI by creating the application it uses as a backend
