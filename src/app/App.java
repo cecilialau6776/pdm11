@@ -48,6 +48,8 @@ public class App implements IApp {
      */
     private User currentUser;
 
+    private PreparedStatement login, updateLastAccessDate, getUserPlatforms, getGamePlatforms, getTotalPlaytimeCollection, getUserCollections, getGamesInCollection, getCollecitonInfo, getCollectionByName, addToCollection, removeGameFromCollection, removeCollection;
+
     /**
      * Creates an App object by establishing a connection to our SQL server
      *
@@ -86,14 +88,26 @@ public class App implements IApp {
             Class.forName(driverName);
             conn = DriverManager.getConnection(url, props);
             System.out.println("Database connection established");
+
+            // Prepare our statements
+            login = conn.prepareStatement("SELECT username, password, email, firstname, lastname, creation_date FROM \"user\" WHERE username = ? AND password = ?");
+            updateLastAccessDate = conn.prepareStatement("UPDATE \"user\" SET last_access_date = ? WHERE username = ?");
+            getUserPlatforms = conn.prepareStatement("SELECT p.pid, p.name FROM owned_platform op JOIN platform p ON op.pid = p.pid WHERE username = ?");
+            getGamePlatforms = conn.prepareStatement(" SELECT platform.pid, \"name\" FROM platform JOIN game_platform gp on platform.pid = gp.pid WHERE gp.gid = ?");
+            getTotalPlaytimeCollection = conn.prepareStatement("SELECT sum(time_played) FROM plays JOIN game g on g.gid = plays.gid JOIN game_collection gc on g.gid = gc.gid WHERE gc.collid = ? and plays.username = ?");
+            getUserCollections = conn.prepareStatement("SELECT collid FROM collection WHERE coll_username = ?");
+            getGamesInCollection = conn.prepareStatement( "SELECT gid from game_collection WHERE collid = ?" );
+            getCollecitonInfo = conn.prepareStatement( "SELECT coll_username, coll_name FROM collection WHERE collid = ?" );
+            getCollectionByName = conn.prepareStatement("SELECT collid FROM collection WHERE UPPER(coll_name) = UPPER(?) AND coll_username = ?");
+            addToCollection = conn.prepareStatement("INSERT INTO game_collection (collid, gid) VALUES (?, ?)");
+            removeGameFromCollection = conn.prepareStatement("DELETE FROM game_collection WHERE collid = ? AND gid = ?");
+            removeCollection = conn.prepareStatement("DELETE FROM collection WHERE collid = ?");
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Connection failed, exiting application...");
             exit(1);//exit on error
         }
         //TODO do some more stuff
-
-        //comment for test commit
     }
 
     @Override
@@ -123,11 +137,10 @@ public class App implements IApp {
             return null;
         }
 
-        String query = "SELECT * FROM \"user\" " +
-                "WHERE username = \'" + username + "\' AND password = \'" + password + "\'";
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
+            login.setString(1, username);
+            login.setString(2, password);
+            ResultSet rs = login.executeQuery();
             if (rs.next()) {
                 String rs_username = rs.getString("username");
                 String rs_password = rs.getString("password");
@@ -137,10 +150,9 @@ public class App implements IApp {
                 Date rs_creation_date = rs.getDate("creation_date");
 
                 Date current_date = new Date(new java.util.Date().getTime());//to update last access date
-                String update_query = "UPDATE \"user\" SET "
-                        + "last_access_date = \'" + current_date.toString()
-                        + "\' WHERE username = \'" + username + "\'";
-                stmt.executeUpdate(update_query);
+                updateLastAccessDate.setDate(1, current_date);
+                updateLastAccessDate.setString(2, username);
+                updateLastAccessDate.executeUpdate();
 
                 currentUser = new User(rs_username, rs_password, rs_email,
                         rs_firstname, rs_lastname, current_date,
@@ -163,10 +175,9 @@ public class App implements IApp {
      */
     @Override
     public Platform[] get_platforms() {
-        String query = String.format("SELECT p.pid, p.name FROM owned_platform op JOIN platform p ON op.pid = p.pid WHERE username = '%s'", currentUser.username());
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
+            getUserPlatforms.setString(1, currentUser.username());
+            ResultSet rs = getUserPlatforms.executeQuery();
             ArrayList<Platform> platforms = new ArrayList<>();
             while (rs.next()) {
                 int pid = rs.getInt("pid");
@@ -188,13 +199,9 @@ public class App implements IApp {
      */
     @Override
     public Platform[] get_game_platforms(Game game) {
-        String q = String.format("""
-                SELECT platform.pid, "name" FROM platform
-                    JOIN game_platform gp on platform.pid = gp.pid
-                    WHERE gp.gid = %d""", game.gid());
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(q);
+            getGamePlatforms.setInt(1, game.gid());
+            ResultSet rs = getGamePlatforms.executeQuery();
             ArrayList<Platform> platforms = new ArrayList<>();
             while (rs.next()) {
                 int pid = rs.getInt("pid");
@@ -216,14 +223,10 @@ public class App implements IApp {
      */
     @Override
     public Time total_playtime_collection(Collection collection) {
-        String q = String.format("""
-                SELECT sum(time_played) FROM plays
-                    JOIN game g on g.gid = plays.gid
-                    JOIN game_collection gc on g.gid = gc.gid
-                    WHERE gc.collid = '%d' and plays.username = '%s'""", collection.collid(), currentUser.username());
         try {
-            Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(q);
+            getTotalPlaytimeCollection.setInt(1, collection.collid());
+            getTotalPlaytimeCollection.setString(2, currentUser.username());
+            ResultSet rs = getTotalPlaytimeCollection.executeQuery();
             if (rs.next()) {
                 return rs.getTime("sum");
             } else {
@@ -273,10 +276,9 @@ public class App implements IApp {
      */
     @Override
     public Collection[] get_collections() {
-        String q = String.format("SELECT collid FROM collection WHERE coll_username = '%s'", currentUser.username());
         try {
-            Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(q);
+            getUserCollections.setString(1, currentUser.username());
+            ResultSet rs = getUserCollections.executeQuery();
             ArrayList<Collection> collections = new ArrayList<>();
             while (rs.next()) {
                 collections.add(getCollection(rs.getInt("collid")));
@@ -295,15 +297,14 @@ public class App implements IApp {
      * @return The matching Collection
      */
     private Collection getCollection(int collid) {
-        String gamesQuery = String.format("SELECT gid from game_collection WHERE collid = '%d'", collid);
-        String collQuery = String.format("SELECT coll_username, coll_name FROM collection WHERE collid = '%d'", collid);
         try {
-            Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(collQuery);
+            getGamesInCollection.setInt(1, collid);
+            getCollecitonInfo.setInt(1, collid);
+            ResultSet rs = getCollecitonInfo.executeQuery();
             if (rs.next()) {
                 String collUsername = rs.getString("coll_username");
                 String collName = rs.getString("coll_name");
-                rs = s.executeQuery(gamesQuery);
+                rs = getGamesInCollection.executeQuery();
                 ArrayList<Game> games = new ArrayList<>();
                 while (rs.next()) {
                     games.add(getGame(rs.getInt("gid")));
@@ -328,12 +329,10 @@ public class App implements IApp {
      */
     @Override
     public Collection[] get_collection_name(String name) {
-        String q = String.format("""
-                    SELECT collid FROM collection
-                WHERE UPPER(coll_name) = UPPER('%s') AND coll_username = '%s'""", name, currentUser.username());
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(q);
+            getCollectionByName.setString(1, name);
+            getCollectionByName.setString(2, currentUser.username());
+            ResultSet rs = getCollectionByName.executeQuery();
             ArrayList<Collection> collections = new ArrayList<>();
             while (rs.next()) {
                 int collId = rs.getInt("collid");
@@ -356,13 +355,10 @@ public class App implements IApp {
      */
     @Override
     public Collection collection_add(Collection collection, Game game) {
-        String q = String.format("""
-                INSERT INTO game_collection (collid, gid)
-                VALUES ('%d', '%d')""", collection.collid(), game.gid());
-
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            addToCollection.setInt(1, collection.collid());
+            addToCollection.setInt(2, game.gid());
+            addToCollection.execute();
             return getCollection(collection.collid());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -380,13 +376,10 @@ public class App implements IApp {
      */
     @Override
     public Collection collection_remove(Collection collection, Game game) {
-        String q = String.format("""
-                DELETE FROM game_collection
-                WHERE collid = '%d' AND gid = '%d'""", collection.collid(), game.gid());
-
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            removeGameFromCollection.setInt(1, collection.collid());
+            removeGameFromCollection.setInt(1, game.gid());
+            removeGameFromCollection.execute();
             return getCollection(collection.collid());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -402,12 +395,9 @@ public class App implements IApp {
      */
     @Override
     public void collection_delete(Collection collection) {
-        String q = String.format("""
-                DELETE FROM collection
-                WHERE collid = '%d'""", collection.collid());
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            removeCollection.setInt(1, collection.collid());
+            removeCollection.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
