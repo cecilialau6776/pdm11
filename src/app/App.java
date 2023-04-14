@@ -5,8 +5,16 @@ import app.model.*;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -17,6 +25,7 @@ import java.util.Properties;
  * @author Damon Gonzalez
  */
 public class App implements IApp {
+
 
     /**
      * Usage method for running this program
@@ -48,7 +57,7 @@ public class App implements IApp {
      */
     private User currentUser;
 
-    private PreparedStatement login, updateLastAccessDate, getUserPlatforms, getGamePlatforms, getTotalPlaytimeCollection, getUserCollections, getGamesInCollection, getCollecitonInfo, getCollectionByName, addToCollection, removeGameFromCollection, removeCollection;
+    private PreparedStatement login, updateLastAccessDate, getUserPlatforms, getGamePlatforms, getTotalPlaytimeCollection, getUserCollections, getGamesInCollection, getCollecitonInfo, getCollectionByName, addToCollection, removeGameFromCollection, removeCollection, renameCollection, createCollection, searchGame, searchGamePrice, searchGamePlatform, searchGameReleaseDate, searchGameDeveloper, searchGameGenre, rate, play, searchUsers, addFriend, removeFriend, searchFriend, buyPlatform, getPlatforms, getUser, getGameRatings, getGameGenres, getGamePublisher, getGameDeveloper, getTotalGamePlaytimeUser, getTotalGamePlaytime, getDateRelease, getPrice, getGame, checkQuery, signUp;
 
     /**
      * Creates an App object by establishing a connection to our SQL server
@@ -96,12 +105,40 @@ public class App implements IApp {
             getGamePlatforms = conn.prepareStatement(" SELECT platform.pid, \"name\" FROM platform JOIN game_platform gp on platform.pid = gp.pid WHERE gp.gid = ?");
             getTotalPlaytimeCollection = conn.prepareStatement("SELECT sum(time_played) FROM plays JOIN game g on g.gid = plays.gid JOIN game_collection gc on g.gid = gc.gid WHERE gc.collid = ? and plays.username = ?");
             getUserCollections = conn.prepareStatement("SELECT collid FROM collection WHERE coll_username = ?");
-            getGamesInCollection = conn.prepareStatement( "SELECT gid from game_collection WHERE collid = ?" );
-            getCollecitonInfo = conn.prepareStatement( "SELECT coll_username, coll_name FROM collection WHERE collid = ?" );
+            getGamesInCollection = conn.prepareStatement("SELECT gid from game_collection WHERE collid = ?");
+            getCollecitonInfo = conn.prepareStatement("SELECT coll_username, coll_name FROM collection WHERE collid = ?");
             getCollectionByName = conn.prepareStatement("SELECT collid FROM collection WHERE UPPER(coll_name) = UPPER(?) AND coll_username = ?");
             addToCollection = conn.prepareStatement("INSERT INTO game_collection (collid, gid) VALUES (?, ?)");
             removeGameFromCollection = conn.prepareStatement("DELETE FROM game_collection WHERE collid = ? AND gid = ?");
             removeCollection = conn.prepareStatement("DELETE FROM collection WHERE collid = ?");
+            renameCollection = conn.prepareStatement("UPDATE collection SET coll_name = ? WHERE collid = ?");
+            createCollection = conn.prepareStatement("INSERT INTO collection (coll_username, coll_name) VALUES (?, ?)");
+            searchGame = conn.prepareStatement("SELECT gid FROM game WHERE UPPER(title) = UPPER(?)");
+            searchGamePrice = conn.prepareStatement("SELECT gid FROM game_platform WHERE price = ?");
+            searchGamePlatform = conn.prepareStatement("SELECT gid FROM game_platform JOIN platform p on game_platform.pid = p.pid WHERE UPPER(p.name) = UPPER(?)");
+            searchGameReleaseDate = conn.prepareStatement("SELECT gid FROM game_platform WHERE release_date = ?");
+            searchGameDeveloper = conn.prepareStatement("SELECT gid FROM develop JOIN company c on develop.compid = c.compid WHERE UPPER(c.name) = UPPER(?)");
+            searchGameGenre = conn.prepareStatement("SELECT gid FROM game_genre JOIN genre g on g.geid = game_genre.geid WHERE UPPER(g.name) = UPPER(?)");
+            rate = conn.prepareStatement("INSERT INTO ratings (username, gid, star_rating) VALUES(?, ?, ?)");
+            play = conn.prepareStatement("INSERT INTO plays (username, gid, play_date, time_played) VALUES (?, ?, ?, ?)");
+            searchUsers = conn.prepareStatement("SELECT * FROM \"user\" WHERE email = ?");
+            addFriend = conn.prepareStatement("INSERT INTO friends (\"user\", friend) VALUES (?, ?)");
+            removeFriend = conn.prepareStatement("DELETE FROM friends WHERE \"user\" = ? AND friend = ?");
+            searchFriend = conn.prepareStatement("SELECT friend FROM friends WHERE \"user\" = ?");
+            buyPlatform = conn.prepareStatement("INSERT INTO owned_platform (username, pid) VALUES (?, ?)");
+            getPlatforms = conn.prepareStatement("SELECT * FROM \"platform\" WHERE UPPER(name) = UPPER(?)");
+            getUser = conn.prepareStatement("SELECT * FROM \"user\" WHERE username = ?");
+            getGameRatings = conn.prepareStatement("SELECT star_rating FROM ratings JOIN game g on ratings.gid = g.gid WHERE g.gid = ?");
+            getGameGenres = conn.prepareStatement("SELECT name FROM genre JOIN game_genre g on genre.geid = g.geid WHERE g.gid = ?");
+            getGamePublisher = conn.prepareStatement("SELECT p.compid, \"name\" from company LEFT JOIN publish p on company.compid = p.compid WHERE p.gid = ?");
+            getGameDeveloper = conn.prepareStatement("SELECT d.compid, \"name\" from company LEFT JOIN develop d on company.compid = d.compid WHERE d.gid = ?");
+            getTotalGamePlaytimeUser = conn.prepareStatement("SELECT sum(time_played) FROM plays WHERE gid = ? AND username = ?");
+            getTotalGamePlaytime = conn.prepareStatement("SELECT sum(time_played) FROM plays WHERE gid = ?");
+            getDateRelease = conn.prepareStatement("SELECT MIN(release_date) FROM game_platform WHERE gid = ?");
+            getPrice = conn.prepareStatement("SELECT MIN(price) FROM game_platform WHERE gid = ?");
+            getGame = conn.prepareStatement("SELECT title, esrb_rating from game WHERE gid = ?");
+            checkQuery = conn.prepareStatement("SELECT username FROM \"user\" WHERE username = ?");
+            signUp = conn.prepareStatement("INSERT INTO \"user\" VALUES (?, ?, ?, ?, ?, ?, ?)");
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println("Connection failed, exiting application...");
@@ -246,19 +283,28 @@ public class App implements IApp {
     @Override
     public User signUp(String username, String password, String email,
                        String firstname, String lastname) {
-        String check_query = "SELECT username FROM \"user\""
-                + " WHERE username = \'" + username + "\'";
-        Date sqlDate = new Date(new java.util.Date().getTime());//the current date in sql format
-        String insert_query = "INSERT INTO \"user\""
-                + " VALUES (\'" + username + "\',\'" + password
-                + "\',\'" + email + "\',\'" + firstname
-                + "\',\'" + lastname + "\',\'" + sqlDate
-                + "\',\'" + sqlDate + "\')";
+        Date sqlDate = new Date(new java.util.Date().getTime()); //the current date in sql format
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(check_query);
+            checkQuery.setString(1, username);
+            ResultSet rs = checkQuery.executeQuery();
             if (!rs.next()) {//the username is not used by anybody else
-                stmt.executeUpdate(insert_query);
+                SecureRandom random = new SecureRandom();
+                byte[] salt = new byte[16];
+                random.nextBytes(salt);
+                KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 69420, 128);
+                SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+
+                byte[] hash = factory.generateSecret(spec).getEncoded();
+                System.out.println(Arrays.toString(hash));
+                String hashedPw = new String(hash, StandardCharsets.UTF_8);
+                signUp.setString(1, username);
+                signUp.setString(2, password);
+                signUp.setString(3, email);
+                signUp.setString(4, firstname);
+                signUp.setString(5, lastname);
+                signUp.setDate(6, sqlDate);
+                signUp.setDate(7, sqlDate);
+                signUp.executeUpdate();
                 return logIn(username, password);
             } else {
                 return null;
@@ -266,6 +312,8 @@ public class App implements IApp {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -408,19 +456,15 @@ public class App implements IApp {
      * prior to the call of the function.
      *
      * @param collection The collection to rename
-     * @param new_name   The new name
+     * @param newName    The new name
      * @return The updated collection
      */
     @Override
-    public Collection collection_rename(Collection collection, String new_name) {
-        String q = String.format("""
-                UPDATE collection
-                SET coll_name = '%s'
-                WHERE collid = '%d'""", new_name, collection.collid());
-
+    public Collection collection_rename(Collection collection, String newName) {
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            renameCollection.setString(1, newName);
+            renameCollection.setInt(2, collection.collid());
+            renameCollection.execute();
             return getCollection(collection.collid());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -436,10 +480,10 @@ public class App implements IApp {
      */
     @Override
     public Collection collection_create(String name) {
-        String q = String.format("INSERT INTO collection (coll_username, coll_name) VALUES ('%s', '%s')", currentUser.username(), name);
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            createCollection.setString(1, currentUser.username());
+            createCollection.setString(2, name);
+            createCollection.execute();
             Collection[] collections = get_collection_name(name);
             if (collections.length == 0) {
                 System.out.println("Creation of collection failed");
@@ -465,10 +509,9 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_name(String name) {
-        String q = String.format("SELECT gid FROM game WHERE UPPER(title) = UPPER('%s')", name);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(q);
+            searchGame.setString(1, name);
+            ResultSet rs = searchGame.executeQuery();
             ArrayList<Game> games = new ArrayList<>();
             while (rs.next()) {
                 games.add(getGame(rs.getInt("gid")));
@@ -488,10 +531,9 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_price(double price) {
-        String query = String.format("SELECT gid FROM game_platform WHERE price = %.2f", price);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            searchGamePrice.setDouble(1, price);
+            ResultSet rs = searchGamePrice.executeQuery();
             ArrayList<Game> games = new ArrayList<>();
             while (rs.next()) {
                 games.add(getGame(rs.getInt("gid")));
@@ -511,12 +553,9 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_platform(String platform) {
-        String q = String.format("SELECT gid FROM game_platform\n" +
-                "    JOIN platform p on game_platform.pid = p.pid\n" +
-                "    WHERE UPPER(p.name) = UPPER('%s')", platform);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(q);
+            searchGamePlatform.setString(1, platform);
+            ResultSet rs = searchGamePlatform.executeQuery();
             ArrayList<Game> games = new ArrayList<>();
             while (rs.next()) {
                 games.add(getGame(rs.getInt("gid")));
@@ -537,10 +576,9 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_release_date(Date release_date) {
-        String query = String.format("SELECT gid FROM game_platform WHERE release_date = '%s'", release_date.toString());
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            searchGameReleaseDate.setDate(1, release_date);
+            ResultSet rs = searchGameReleaseDate.executeQuery();
             ArrayList<Game> games = new ArrayList<>();
             while (rs.next()) {
                 games.add(getGame(rs.getInt("gid")));
@@ -560,13 +598,9 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_developer(String developer) {
-        String q = String.format("""
-                SELECT gid FROM develop
-                    JOIN company c on develop.compid = c.compid
-                    WHERE UPPER(c.name) = UPPER('%s')""", developer);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(q);
+            searchGameDeveloper.setString(1, developer);
+            ResultSet rs = searchGameDeveloper.executeQuery();
             ArrayList<Game> games = new ArrayList<>();
             while (rs.next()) {
                 games.add(getGame(rs.getInt("gid")));
@@ -586,13 +620,9 @@ public class App implements IApp {
      */
     @Override
     public Game[] search_game_genre(String genre) {
-        String q = String.format("""
-                SELECT gid FROM game_genre
-                JOIN genre g on g.geid = game_genre.geid
-                WHERE UPPER(g.name) = UPPER('%s')""", genre);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(q);
+            searchGameGenre.setString(1, genre);
+            ResultSet rs = searchGameGenre.executeQuery();
             ArrayList<Game> games = new ArrayList<>();
             while (rs.next()) {
                 games.add(getGame(rs.getInt("gid")));
@@ -618,10 +648,11 @@ public class App implements IApp {
             System.out.println("Rating must be in range 0-5 inclusive.");
             return null;
         }
-        String query = String.format("INSERT INTO ratings (username, gid, star_rating) VALUES('%s', '%d', '%d')", currentUser.username(), game.gid(), rating);
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(query);
+            rate.setString(1, currentUser.username());
+            rate.setInt(2, game.gid());
+            rate.setInt(2, rating);
+            rate.execute();
             return getGame(game.gid());
         } catch (SQLException e) {
             e.printStackTrace();
@@ -640,13 +671,14 @@ public class App implements IApp {
     @Override
     public void play(Game game, Time time) {
         Date current_date = new Date(new java.util.Date().getTime());
-        String query = String.format("INSERT INTO plays (username, gid, play_date, time_played) VALUES ('%s', '%d', '%s', '%s')", currentUser.username(), game.gid(), current_date, time.toString());
         try {
-            Statement s = conn.createStatement();
-            s.execute(query);
+            play.setString(1, currentUser.username());
+            play.setInt(2, game.gid());
+            play.setDate(3, current_date);
+            play.setTime(4, time);
+            play.execute();
         } catch (SQLException e) {
             e.printStackTrace();
-            return;
         }
     }
 
@@ -658,10 +690,9 @@ public class App implements IApp {
      */
     @Override
     public User[] search_users(String email) {
-        String query = String.format("SELECT * FROM \"user\" WHERE email = '%s'", email);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            searchUsers.setString(1, email);
+            ResultSet rs = searchUsers.executeQuery();
             ArrayList<User> users = new ArrayList<>();
             while (rs.next()) {
                 String rs_username = rs.getString("username");
@@ -692,13 +723,10 @@ public class App implements IApp {
      */
     @Override
     public void add_friend(User friend) {
-        String q = String.format("""
-                INSERT INTO friends ("user", friend)
-                VALUES ('%s', '%s')""", currentUser.username(), friend.username());
-
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            addFriend.setString(1, currentUser.username());
+            addFriend.setString(2, friend.username());
+            addFriend.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -713,23 +741,19 @@ public class App implements IApp {
      */
     @Override
     public void delete_friend(User friend) {
-        String q = String.format("""
-                DELETE FROM friends
-                WHERE "user" = '%s' AND friend = '%s'""", currentUser.username(), friend.username());
-
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            removeFriend.setString(1, currentUser.username());
+            removeFriend.setString(2, friend.username());
+            removeFriend.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public User[] search_friends() {
-        String query = String.format("SELECT friend FROM friends WHERE \"user\" = '%s'", currentUser.username());
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            searchFriend.setString(1, currentUser.username());
+            ResultSet rs = searchFriend.executeQuery();
             ArrayList<User> users = new ArrayList<>();
             while (rs.next()) {
                 users.add(getUser(rs.getString("friend")));
@@ -748,13 +772,10 @@ public class App implements IApp {
      */
     @Override
     public void buy_platform(Platform platform) {
-        String q = String.format("""
-                INSERT INTO owned_platform (username, pid)
-                VALUES ('%s', '%d')""", currentUser.username(), platform.pid());
-
         try {
-            Statement statement = conn.createStatement();
-            statement.execute(q);
+            buyPlatform.setString(1, currentUser.username());
+            buyPlatform.setInt(2, platform.pid());
+            buyPlatform.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -768,10 +789,9 @@ public class App implements IApp {
      */
     @Override
     public Platform[] get_all_platform_name(String platform_name) {
-        String query = String.format("SELECT * FROM \"platform\" WHERE UPPER(name) = UPPER('%s')", platform_name);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            getPlatforms.setString(1, platform_name);
+            ResultSet rs = getPlatforms.executeQuery();
             ArrayList<Platform> platforms = new ArrayList<>();
             while (rs.next()) {
                 String rs_pid = rs.getString("pid");
@@ -786,10 +806,9 @@ public class App implements IApp {
     }
 
     private User getUser(String username) {
-        String query = String.format("SELECT * FROM \"user\" WHERE username = '%s'", username);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            getUser.setString(1, username);
+            ResultSet rs = getUser.executeQuery();
             if (rs.next()) {
                 String rs_username = rs.getString("username");
                 String rs_password = rs.getString("password");
@@ -818,13 +837,9 @@ public class App implements IApp {
      * @return The game's ratings
      */
     private int[] getGameRatings(int gid) {
-        String query = String.format("""
-                SELECT star_rating FROM ratings
-                    JOIN game g on ratings.gid = g.gid
-                    WHERE g.gid = '%d'""", gid);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            getGameRatings.setInt(1, gid);
+            ResultSet rs = getGameRatings.executeQuery();
             ArrayList<Integer> ratings = new ArrayList<>();
             while (rs.next()) {
                 ratings.add(rs.getInt("star_rating"));
@@ -843,14 +858,9 @@ public class App implements IApp {
      * @return The game's genres
      */
     private String[] getGameGenres(int gid) {
-        String query = String.format("""
-                SELECT name FROM genre
-                    JOIN game_genre g on genre.geid = g.geid
-                    WHERE g.gid = '%d'
-                """, gid);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            getGameGenres.setInt(1, gid);
+            ResultSet rs = getGameGenres.executeQuery();
             ArrayList<String> genres = new ArrayList<>();
             while (rs.next()) {
                 genres.add(rs.getString("name"));
@@ -869,13 +879,9 @@ public class App implements IApp {
      * @return The Compnay that published the game
      */
     private Company getGamePublisher(int gid) {
-        String query = String.format("""
-                SELECT p.compid, "name" from company
-                    LEFT JOIN publish p on company.compid = p.compid
-                    WHERE p.gid = '%d'""", gid);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            getGamePublisher.setInt(1, gid);
+            ResultSet rs = getGamePublisher.executeQuery();
             if (rs.next()) {
                 int compId = rs.getInt("compid");
                 String compName = rs.getString("name");
@@ -896,13 +902,9 @@ public class App implements IApp {
      * @return The Compnay that developed the game
      */
     private Company getGameDeveloper(int gid) {
-        String query = String.format("""
-                SELECT d.compid, "name" from company
-                    LEFT JOIN develop d on company.compid = d.compid
-                    WHERE d.gid = '%d'""", gid);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            getGameDeveloper.setInt(1, gid);
+            ResultSet rs = getGameDeveloper.executeQuery();
             if (rs.next()) {
                 int compId = rs.getInt("compid");
                 String compName = rs.getString("name");
@@ -923,12 +925,10 @@ public class App implements IApp {
      * @return Total playtime as a Time
      */
     private Time getTotalGamePlaytimeUser(int gid) {
-        String q = String.format("""
-                SELECT sum(time_played) FROM plays
-                    WHERE gid = '%d' AND username = '%s'""", gid, currentUser.username());
         try {
-            Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(q);
+            getTotalGamePlaytimeUser.setInt(1, gid);
+            getTotalGamePlaytimeUser.setString(2, currentUser.username());
+            ResultSet rs = getTotalGamePlaytimeUser.executeQuery();
             if (rs.next()) {
                 return rs.getTime("sum");
             } else {
@@ -948,11 +948,10 @@ public class App implements IApp {
      */
     private Time getTotalGamePlaytime(int gid) {
         String q = String.format("""
-                SELECT sum(time_played) FROM plays
-                    WHERE gid = '%d'""", gid);
+                """, gid);
         try {
-            Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(q);
+            getTotalGamePlaytime.setInt(1, gid);
+            ResultSet rs = getTotalGamePlaytime.executeQuery(q);
             if (rs.next()) {
                 return rs.getTime("sum");
             } else {
@@ -971,10 +970,9 @@ public class App implements IApp {
      * @return date release as a Date
      */
     private Date getDateRelease(int gid) {
-        String q = String.format("SELECT MIN(release_date) FROM game_platform WHERE gid = '%d'", gid);
         try {
-            Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(q);
+            getDateRelease.setInt(1, gid);
+            ResultSet rs = getDateRelease.executeQuery();
             if (rs.next()) {
                 Date d = rs.getDate("min");
                 return (d != null) ? d : new Date(0);
@@ -994,10 +992,9 @@ public class App implements IApp {
      * @return price of game as a double, -1 if not found or error.
      */
     private double getPrice(int gid) {
-        String q = String.format("SELECT MIN(price) FROM game_platform WHERE gid = '%d'", gid);
         try {
-            Statement s = conn.createStatement();
-            ResultSet rs = s.executeQuery(q);
+            getPrice.setInt(1, gid);
+            ResultSet rs = getPrice.executeQuery();
             if (rs.next()) {
                 return rs.getDouble("min");
             } else {
@@ -1017,12 +1014,9 @@ public class App implements IApp {
      * @return The matching Game
      */
     private Game getGame(int gid) {
-        String query = String.format("""
-                SELECT title, esrb_rating from game
-                    WHERE gid = '%d'""", gid);
         try {
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(query);
+            getGame.setInt(1, gid);
+            ResultSet rs = getGame.executeQuery();
             if (rs.next()) {
                 String title = rs.getString("title");
                 String esrbRating = rs.getString("esrb_rating");
