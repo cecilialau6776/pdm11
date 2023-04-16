@@ -1,9 +1,6 @@
 package app;
 
-import app.model.Collection;
-import app.model.Game;
-import app.model.Platform;
-import app.model.User;
+import app.model.*;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -239,4 +236,9 @@ public interface IApp {
      */
     Platform[] get_all_platform_name(String platform_name);
 
+    /**
+     *
+     * @return
+     */
+    UserProfile get_profile();
 }
