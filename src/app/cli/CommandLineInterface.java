@@ -16,11 +16,6 @@ import app.model.*;
 public class CommandLineInterface {
 
     /**
-     * Constant prompt for user input
-     */
-    private final static String PROMPT = "pdm320_11 interface> ";
-
-    /**
      * Error message for unrecognized command
      */
     private final static String ERR_MESSAGE = "Unrecognized command, Type \"help\" to get list of commands";
@@ -76,6 +71,8 @@ public class CommandLineInterface {
     private final static String COLLECTION_CREATE = "CREATE_COLLECTION";
 
     private final static String BUY_PLATFORM = "BUY_PLATFORM";
+
+    private final static String PROFILE = "PROFILE";
 
     /**
      * Declares current user
@@ -959,6 +956,19 @@ public class CommandLineInterface {
                         continue;
                     }
                     buy_platform(tokens[1]);
+                }
+
+                case PROFILE -> {
+                    UserProfile profile = app.get_profile();
+                    System.out.println(profile);
+                    Game[] topTen = profile.topTen();
+                    if(topTen.length == 0){
+                        System.out.println("\t0 games");
+                    } else {
+                        for (Game game : topTen) {
+                            printFullGame(game);
+                        }
+                    }
                 }
 
                 case HELP -> {

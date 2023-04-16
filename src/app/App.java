@@ -3,12 +3,18 @@ package app;
 import app.cli.CommandLineInterface;
 import app.model.*;
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import app.model.Collection;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
 import java.sql.*;
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Properties;
+=======
+import java.sql.Date;
+import java.util.*;
+>>>>>>> b4319af (added the user profile functionality)
 
 /**
  * Database application object.
@@ -136,7 +142,6 @@ public class App implements IApp {
             System.err.println("Connection failed, exiting application...");
             exit(1);//exit on error
         }
-        //TODO do some more stuff
     }
 
     @Override
@@ -1021,6 +1026,76 @@ public class App implements IApp {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public UserProfile get_profile() {
+        String username = currentUser.username();
+        int numCollections = get_collections().length;
+        int numFollowers = num_followers();
+        int numFollowing = num_following();
+        Game[] topTen = get_topTen();
+        return new UserProfile(username, numCollections, numFollowers, numFollowing, topTen);
+    }
+
+    /**
+     * Gets the number of followers of the user currently logged
+     * @return The number of followers
+     */
+    private int num_followers(){
+        try {
+            PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM friends " +
+                    "WHERE friend = ?");
+            statement.setString(1, currentUser.username());
+            ResultSet rs = statement.executeQuery();
+            if(rs.next())
+                return rs.getInt("count");
+        } catch (SQLException ignored){}
+        return 0;
+    }
+
+    /**
+     * Gets the number of people who this user is following
+     * @return The number following
+     */
+    private int num_following(){
+        try {
+            PreparedStatement statement = conn.prepareStatement("SELECT count(*) FROM friends " +
+                    "WHERE \"user\" = ?");
+            statement.setString(1, currentUser.username());
+            ResultSet rs = statement.executeQuery();
+            if(rs.next())
+                return rs.getInt("count");
+        } catch (SQLException ignored){}
+        return 0;
+    }
+
+    /**
+     * Retrieves the top ten games of a user by total playtime of that game
+     * for the current user. The length of the array will not exceed ten
+     * @return The top ten games
+     */
+    private Game[] get_topTen(){
+        try {
+            PreparedStatement statement = conn.prepareStatement("SELECT gid FROM plays WHERE username = ? " +
+                    "GROUP BY gid");
+            statement.setString(1, currentUser.username());
+            ResultSet rs = statement.executeQuery();
+            List<Game> gids = new ArrayList<>();
+            while(rs.next()){
+                gids.add(getGame(rs.getInt(0)));
+            }
+            gids.sort(Comparator.comparing(Game::playtime));
+            int size = 10;
+            if(gids.size() < 10)
+                size = gids.size();
+            Game[] topTen = new Game[size];
+            for(int i = 0; i < size; i++){
+                topTen[i] = gids.get(i);
+            }
+            return topTen;
+        } catch(SQLException ignored){}
+        return new Game[0];
     }
 
     /**
