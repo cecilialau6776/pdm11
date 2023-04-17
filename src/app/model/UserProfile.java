@@ -15,8 +15,7 @@ public record UserProfile(
         int numFollowing,
         Game[] topTen
 ) {
-    @Override
-    public String toString() {
+    public String display() {
         String format = "%s has:" +
                 "\t%d collections\n" +
                 "\t%d followers\n" +

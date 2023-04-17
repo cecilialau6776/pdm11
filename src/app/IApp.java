@@ -237,8 +237,36 @@ public interface IApp {
     Platform[] get_all_platform_name(String platform_name);
 
     /**
-     *
-     * @return
+     * Gets the profile of the user
+     * @return The profile of the user
      */
     UserProfile get_profile();
+
+    /**
+     * Gives an array of 20 games that is recommended for this user based on
+     * the most popular games in teh last 90 days(rolling)
+     * @return The games recommended
+     */
+    Game[] recommend_days();
+
+    /**
+     * Gives an array of 20 games that is recommended for this user based on the users
+     * friends.
+     * @return The games recommended
+     */
+    Game[] recommend_friends();
+
+    /**
+     * Gives an array of 5 games that are the top releases of the calendar
+     * month.
+     * @return The games recommended
+     */
+    Game[] recommend_month();
+
+    /**
+     * Gives an array of 5 games that are recommended for this user
+     * based on their play history and the play history of similar users.
+     * @return The games recommended
+     */
+    Game[] recommend_personal();
 }
