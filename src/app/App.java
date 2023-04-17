@@ -1077,24 +1077,55 @@ public class App implements IApp {
      */
     private Game[] get_topTen(){
         try {
-            PreparedStatement statement = conn.prepareStatement("SELECT gid FROM plays WHERE username = ? " +
-                    "GROUP BY gid");
+            PreparedStatement statement = conn.prepareStatement("SELECT gid\n" +
+                    "FROM (SELECT gid, sum(time_played) as time_sum\n" +
+                    "     FROM plays\n" +
+                    "     WHERE username = ?\n" +
+                    "     GROUP BY gid) AS foo\n" +
+                    "ORDER BY time_sum DESC\n " +
+                    "LIMIT 10");
             statement.setString(1, currentUser.username());
             ResultSet rs = statement.executeQuery();
-            List<Game> gids = new ArrayList<>();
+            List<Game> games = new ArrayList<>();
             while(rs.next()){
-                gids.add(getGame(rs.getInt(0)));
+                games.add(getGame(rs.getInt(1)));
             }
-            gids.sort(Comparator.comparing(Game::playtime));
-            int size = 10;
-            if(gids.size() < 10)
-                size = gids.size();
-            Game[] topTen = new Game[size];
-            for(int i = 0; i < size; i++){
-                topTen[i] = gids.get(i);
+            return games.toArray(new Game[0]);
+        } catch(SQLException ignored) {}
+        return new Game[0];
+    }
+
+    @Override
+    public Game[] recommend_days() {
+        try{
+            PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum " +
+                    "FROM plays\n" +
+                    "WHERE play_date > date_mi_interval(current_date, interval '90 days')\n" +
+                    "GROUP BY gid\n" +
+                    "ORDER BY time_sum DESC\n" +
+                    "LIMIT 20");
+            ResultSet rs = statement.executeQuery();
+            List<Game> games = new ArrayList<>();
+            while(rs.next()){
+                games.add(getGame(rs.getInt(1)));
             }
-            return topTen;
-        } catch(SQLException ignored){}
+            return games.toArray(new Game[0]);
+        } catch (SQLException ignored){}
+        return new Game[0];
+    }
+
+    @Override
+    public Game[] recommend_friends() {
+        return new Game[0];
+    }
+
+    @Override
+    public Game[] recommend_month() {
+        return new Game[0];
+    }
+
+    @Override
+    public Game[] recommend_personal() {
         return new Game[0];
     }
 

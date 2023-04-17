@@ -74,6 +74,8 @@ public class CommandLineInterface {
 
     private final static String PROFILE = "PROFILE";
 
+    private final static String RECOMMEND = "RECOMMEND";
+
     /**
      * Declares current user
      */
@@ -98,7 +100,7 @@ public class CommandLineInterface {
     private void printFullGame(Game game) {
         System.out.println("\nName: " + game.title());
         System.out.printf("Price: $%.2f\n", game.price());
-        System.out.print("Playtime: ");
+        System.out.print("Your Playtime: ");
         if (game.playtime() == null) System.out.println("0:00:00");
         else System.out.println(game.playtime());
 
@@ -769,27 +771,27 @@ public class CommandLineInterface {
 
         do {
             System.out.print(">\t");
-            String input = in.nextLine();
-            switch (input.toUpperCase()) {
+            String input = in.nextLine().toUpperCase().strip();
+            switch (input) {
                 case LOGIN -> {
                     System.out.print("Username:\n>\t");
-                    String username = in.nextLine();
+                    String username = in.nextLine().strip();
                     System.out.print("Password:\n>\t");
-                    String password = in.nextLine();
+                    String password = in.nextLine().strip();
                     this.user = app.logIn(username, password);
 
                 }
                 case SIGNUP -> {
                     System.out.print("Username:\n>\t");
-                    String username = in.nextLine();
+                    String username = in.nextLine().strip();
                     System.out.print("Password:\n>\t");
-                    String password = in.nextLine();
+                    String password = in.nextLine().strip();
                     System.out.print("Email:\n>\t");
-                    String email = in.nextLine();
+                    String email = in.nextLine().strip();
                     System.out.print("Firstname:\n>\t");
-                    String firstname = in.nextLine();
+                    String firstname = in.nextLine().strip();
                     System.out.print("Lastname:\n>\t");
-                    String lastname = in.nextLine();
+                    String lastname = in.nextLine().strip();
                     this.user = app.signUp(username, password, email, firstname, lastname);
                 }
 
@@ -960,13 +962,50 @@ public class CommandLineInterface {
 
                 case PROFILE -> {
                     UserProfile profile = app.get_profile();
-                    System.out.println(profile);
+                    System.out.println(profile.display());
                     Game[] topTen = profile.topTen();
                     if(topTen.length == 0){
                         System.out.println("\t0 games");
                     } else {
-                        for (Game game : topTen) {
-                            printFullGame(game);
+                        System.out.println("Your top ten games:");
+                        for (int i = 0; i < topTen.length; i++) {
+                            System.out.println((i + 1) + ":");
+                            printFullGame(topTen[i]);
+                        }
+                    }
+                }
+
+                case RECOMMEND -> {
+                    if(tokens.length < 2){
+                        System.out.println("Usage: recommend { DAYS | FRIENDS | MONTH | PERSONAL }");
+                        System.out.println("DAYS is the top 20 video games in the last 90 days");
+                        System.out.println("FRIENDS is the top 20 video games among your friends");
+                        System.out.println("MONTH is the top 5 releases of the calendar month");
+                        System.out.println("PERSONAL is a personal recommendation of 5 games based on your play history");
+                    } else {
+                        Game[] recommended = null;
+                        switch (tokens[1].toUpperCase()){
+                            case "DAYS" -> {
+                                recommended = app.recommend_days();
+                            }
+                            case "FRIENDS" -> {
+                                recommended = app.recommend_friends();
+                            }
+                            case "MONTH" -> {
+                                recommended = app.recommend_month();
+                            }
+                            case "PERSONAL" -> {
+                                recommended = app.recommend_personal();
+                            }
+                            default -> {
+                                System.out.println(tokens[1] + " is not a valid recommendation option");
+                            }
+                        }
+                        if(recommended != null) {
+                            for (int i = 0; i < recommended.length; i++) {
+                                System.out.println((i + 1) + ":");
+                                printFullGame(recommended[i]);
+                            }
                         }
                     }
                 }
