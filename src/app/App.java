@@ -1121,6 +1121,20 @@ public class App implements IApp {
 
     @Override
     public Game[] recommend_month() {
+        try{
+            PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum " +
+                    "FROM plays\n" +
+                    "WHERE EXTRACT(MONTH FROM current_date) = EXTRACT(MONTH FROM play_date)\n" +
+                    "GROUP BY gid\n" +
+                    "ORDER BY time_sum DESC\n" +
+                    "LIMIT 5\n");
+            ResultSet rs = statement.executeQuery();
+            List<Game> games = new ArrayList<>();
+            while(rs.next()){
+                games.add(getGame(rs.getInt(1)));
+            }
+            return games.toArray(new Game[0]);
+        } catch (SQLException ignored){}
         return new Game[0];
     }
 
