@@ -2,19 +2,12 @@ package app;
 
 import app.cli.CommandLineInterface;
 import app.model.*;
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -25,7 +18,6 @@ import java.util.Properties;
  * @author Damon Gonzalez
  */
 public class App implements IApp {
-
 
     /**
      * Usage method for running this program
@@ -99,7 +91,7 @@ public class App implements IApp {
             System.out.println("Database connection established");
 
             // Prepare our statements
-            login = conn.prepareStatement("SELECT username, password, email, firstname, lastname, creation_date FROM \"user\" WHERE username = ? AND password = ?");
+            login = conn.prepareStatement("SELECT username, password, email, firstname, lastname, creation_date FROM \"user\" WHERE username = ?");
             updateLastAccessDate = conn.prepareStatement("UPDATE \"user\" SET last_access_date = ? WHERE username = ?");
             getUserPlatforms = conn.prepareStatement("SELECT p.pid, p.name FROM owned_platform op JOIN platform p ON op.pid = p.pid WHERE username = ?");
             getGamePlatforms = conn.prepareStatement(" SELECT platform.pid, \"name\" FROM platform JOIN game_platform gp on platform.pid = gp.pid WHERE gp.gid = ?");
@@ -176,22 +168,25 @@ public class App implements IApp {
 
         try {
             login.setString(1, username);
-            login.setString(2, password);
             ResultSet rs = login.executeQuery();
             if (rs.next()) {
                 String rs_username = rs.getString("username");
-                String rs_password = rs.getString("password");
+                String rsPwHash = rs.getString("password");
                 String rs_email = rs.getString("email");
                 String rs_firstname = rs.getString("firstname");
                 String rs_lastname = rs.getString("lastname");
                 Date rs_creation_date = rs.getDate("creation_date");
 
+                BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), rsPwHash);
+                if (!result.verified) {
+                    System.out.println("Incorrect password");
+                }
                 Date current_date = new Date(new java.util.Date().getTime());//to update last access date
                 updateLastAccessDate.setDate(1, current_date);
                 updateLastAccessDate.setString(2, username);
                 updateLastAccessDate.executeUpdate();
 
-                currentUser = new User(rs_username, rs_password, rs_email,
+                currentUser = new User(rs_username, rsPwHash, rs_email,
                         rs_firstname, rs_lastname, current_date,
                         rs_creation_date);
                 return currentUser;
@@ -288,17 +283,9 @@ public class App implements IApp {
             checkQuery.setString(1, username);
             ResultSet rs = checkQuery.executeQuery();
             if (!rs.next()) {//the username is not used by anybody else
-                SecureRandom random = new SecureRandom();
-                byte[] salt = new byte[16];
-                random.nextBytes(salt);
-                KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 69420, 128);
-                SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-
-                byte[] hash = factory.generateSecret(spec).getEncoded();
-                System.out.println(Arrays.toString(hash));
-                String hashedPw = new String(hash, StandardCharsets.UTF_8);
+                String hashedPw = BCrypt.withDefaults().hashToString(12, password.toCharArray());
                 signUp.setString(1, username);
-                signUp.setString(2, password);
+                signUp.setString(2, hashedPw);
                 signUp.setString(3, email);
                 signUp.setString(4, firstname);
                 signUp.setString(5, lastname);
@@ -312,8 +299,6 @@ public class App implements IApp {
         } catch (SQLException e) {
             e.printStackTrace();
             return null;
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new RuntimeException(e);
         }
     }
 
