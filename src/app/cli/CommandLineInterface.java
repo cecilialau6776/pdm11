@@ -1001,11 +1001,14 @@ public class CommandLineInterface {
                                 System.out.println(tokens[1] + " is not a valid recommendation option");
                             }
                         }
-                        if(recommended != null) {
+                        if(recommended.length != 0) {
                             for (int i = 0; i < recommended.length; i++) {
                                 System.out.println((i + 1) + ":");
                                 printFullGame(recommended[i]);
                             }
+                        } else {
+                            System.out.println("For some reason we have no recommendations for you for that" +
+                                    " category. We're so sorry :((");
                         }
                     }
                 }
