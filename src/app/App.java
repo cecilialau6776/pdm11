@@ -909,15 +909,15 @@ public class App implements IApp {
     }
 
     /**
-     * Gets the total playtime for a game for the current user.
+     * Gets the total playtime for a game for the given user
      *
      * @param gid The game's id
      * @return Total playtime as a Time
      */
-    private Time getTotalGamePlaytimeUser(int gid) {
+    private Time getTotalGamePlaytimeUser(int gid, String username) {
         try {
             getTotalGamePlaytimeUser.setInt(1, gid);
-            getTotalGamePlaytimeUser.setString(2, currentUser.username());
+            getTotalGamePlaytimeUser.setString(2, username);
             ResultSet rs = getTotalGamePlaytimeUser.executeQuery();
             if (rs.next()) {
                 return rs.getTime("sum");
@@ -928,6 +928,15 @@ public class App implements IApp {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Get total playtime for a game for the current user
+     * @param gid The game's id
+     * @return Total playtime as a Time
+     */
+    private Time getTotalGamePlaytimeUser(int gid){
+        return getTotalGamePlaytimeUser(gid, currentUser.username());
     }
 
     /**
@@ -998,12 +1007,12 @@ public class App implements IApp {
 
 
     /**
-     * Gets a game given the game's id
+     * Gets a game of the given user given the game's id
      *
      * @param gid The game's id
      * @return The matching Game
      */
-    private Game getGame(int gid) {
+    private Game getGame(int gid, String username) {
         try {
             getGame.setInt(1, gid);
             ResultSet rs = getGame.executeQuery();
@@ -1026,6 +1035,15 @@ public class App implements IApp {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * Gets the game with the given id by the current user
+     * @param gid The id of the game
+     * @return The game object
+     */
+    private Game getGame(int gid){
+        return getGame(gid, currentUser.username());
     }
 
     @Override
@@ -1077,12 +1095,11 @@ public class App implements IApp {
      */
     private Game[] get_topTen(){
         try {
-            PreparedStatement statement = conn.prepareStatement("SELECT gid\n" +
-                    "FROM (SELECT gid, sum(time_played) as time_sum\n" +
-                    "     FROM plays\n" +
-                    "     WHERE username = ?\n" +
-                    "     GROUP BY gid) AS foo\n" +
-                    "ORDER BY time_sum DESC\n " +
+            PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum\n" +
+                    "FROM plays\n" +
+                    "WHERE username = ?\n" +
+                    "GROUP BY gid\n" +
+                    "ORDER BY time_sum DESC\n" +
                     "LIMIT 10");
             statement.setString(1, currentUser.username());
             ResultSet rs = statement.executeQuery();
@@ -1116,7 +1133,51 @@ public class App implements IApp {
 
     @Override
     public Game[] recommend_friends() {
+        try{
+            String[] usernames = get_friend_username();
+            List<Game> games = new ArrayList<>();
+            for(String username: usernames){
+                PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum\n" +
+                        "FROM plays\n" +
+                        "WHERE username = ?\n" +
+                        "GROUP BY gid\n" +
+                        "ORDER BY time_sum DESC\n" +
+                        "LIMIT 20");
+                statement.setString(1, username);
+                ResultSet rs = statement.executeQuery();
+                while(rs.next()){
+                    games.add(getGame(rs.getInt(1), username));
+                }
+                games.sort((o1, o2) -> o2.playtime().compareTo(o1.playtime()));
+                List<Game> arrangedGames = new ArrayList<>();
+                for(int i = 0; i < games.size() && i < 20; i++){
+                    arrangedGames.add(games.get(i));
+                }
+                return arrangedGames.toArray(new Game[0]);
+            }
+
+        } catch (SQLException ignored){}
         return new Game[0];
+    }
+
+    /**
+     * Returns the username of all the current user's friends in and array of
+     * strings
+     * @return The usernames of the friends of this user
+     */
+    private String[] get_friend_username(){
+        try{
+            PreparedStatement statement = conn.prepareStatement("SELECT friend FROM friends\n" +
+                    "WHERE \"user\" = ?");
+            statement.setString(1, currentUser.username());
+            ResultSet rs = statement.executeQuery();
+            List<String> usernames = new ArrayList<>();
+            while(rs.next()){
+                usernames.add(rs.getString(1));
+            }
+            return usernames.toArray(new String[0]);
+        } catch (SQLException ignored){}
+        return new String[0];
     }
 
     @Override
