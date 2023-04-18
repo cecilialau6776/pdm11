@@ -265,7 +265,7 @@ public interface IApp {
 
     /**
      * Gives an array of 5 games that are recommended for this user
-     * based on their play history and the play history of similar users.
+     * based on their play history with respect to genres
      * @return The games recommended
      */
     Game[] recommend_personal();

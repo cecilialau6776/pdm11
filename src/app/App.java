@@ -8,13 +8,8 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
 import java.sql.*;
-<<<<<<< HEAD
-import java.util.ArrayList;
-import java.util.Properties;
-=======
 import java.sql.Date;
 import java.util.*;
->>>>>>> b4319af (added the user profile functionality)
 
 /**
  * Database application object.
@@ -1201,6 +1196,63 @@ public class App implements IApp {
 
     @Override
     public Game[] recommend_personal() {
+        try{
+            PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum FROM plays\n" +
+                    "WHERE username = ?\n" +
+                    "GROUP BY gid\n" +
+                    "ORDER BY time_sum DESC\n" +
+                    "LIMIT 1");
+            statement.setString(1, currentUser.username());
+            ResultSet rs = statement.executeQuery();
+            if(rs.next()){
+                Game game = getGame(rs.getInt(1));
+                String[] arr = game.genres();//gets all the genres of the game selected
+                if(arr.length == 0)
+                    return new Game[0];
+                String genre = arr[(new Random()).nextInt(0, arr.length)]; // selects a random genre
+                PreparedStatement gameStatement = conn.prepareStatement("SELECT gid FROM game_genre INNER JOIN genre g on g.geid = game_genre.geid\n" +
+                        "WHERE name = ?");
+                gameStatement.setString(1, genre);
+                List<Game> games = new ArrayList<>();
+                while(rs.next()){
+                    games.add(getGame(rs.getInt(1)));
+                    if(games.size() == 20) break;
+                }
+                games.sort(new Comparator<Game>() {
+                    @Override
+                    public int compare(Game o1, Game o2) {
+                        double firstRating = averageRating(o1);
+                        double secondRating = averageRating(o2);
+                        if(firstRating > secondRating){
+                            return -1;
+                        } else if (secondRating > firstRating){
+                            return 1;
+                        }
+                        return 0;
+                    }
+
+                    /**
+                     * Calculates the average rating of a game
+                     * @param game The game to calculate the rating of
+                     * @return The average rating
+                     */
+                    private double averageRating(Game game){
+                        int[] ratings = game.ratings();
+                        double avg = 0;
+                        for(int rating : ratings)
+                            avg += rating;
+                        return avg / ratings.length;
+                    }
+                });// sorts by higher average rating
+                int size = Math.min(games.size(), 5);
+                Game[] recommendedGames = new Game[size];
+                for(int i = 0; i < size; i++)
+                    recommendedGames[i] = games.get(i);
+                return recommendedGames;
+            } else {
+                return new Game[0];
+            }
+        } catch (SQLException ignored){}
         return new Game[0];
     }
 
