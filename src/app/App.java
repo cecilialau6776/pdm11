@@ -1018,7 +1018,7 @@ public class App implements IApp {
                 String[] genres = getGameGenres(gid);
                 Company dev = getGameDeveloper(gid);
                 Company pub = getGamePublisher(gid);
-                Time playtime = getTotalGamePlaytimeUser(gid);
+                Time playtime = getTotalGamePlaytimeUser(gid, username);
                 Date dateRelease = getDateRelease(gid);
                 double price = getPrice(gid);
                 return new Game(gid, title, esrbRating, ratings, genres, dev, pub, playtime, dateRelease, price);
