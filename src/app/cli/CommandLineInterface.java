@@ -1031,6 +1031,7 @@ public class CommandLineInterface {
                     System.out.println("add_friend              add a user as a friend with provided email");
                     System.out.println("remove_friend           remove user from friends with provided email");
                     System.out.println("search_game             search a list of games based on value given");
+                    System.out.println("recommend               grab some game recommendations based on 4 different categories");
                     System.out.println("\nFor a more in depth usage of each command, Enter the command with no arguments\n");
                 }
 

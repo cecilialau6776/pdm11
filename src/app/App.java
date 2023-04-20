@@ -1149,26 +1149,6 @@ public class App implements IApp {
         return new Game[0];
     }
 
-    /**
-     * Returns the username of all the current user's friends in and array of
-     * strings
-     * @return The usernames of the friends of this user
-     */
-    private String[] get_friend_username(){
-        try{
-            PreparedStatement statement = conn.prepareStatement("SELECT friend FROM friends\n" +
-                    "WHERE \"user\" = ?");
-            statement.setString(1, currentUser.username());
-            ResultSet rs = statement.executeQuery();
-            List<String> usernames = new ArrayList<>();
-            while(rs.next()){
-                usernames.add(rs.getString(1));
-            }
-            return usernames.toArray(new String[0]);
-        } catch (SQLException ignored){}
-        return new String[0];
-    }
-
     @Override
     public Game[] recommend_month() {
         try{
@@ -1194,61 +1174,34 @@ public class App implements IApp {
     @Override
     public Game[] recommend_personal() {
         try{
-            PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum FROM plays\n" +
-                    "WHERE username = ?\n" +
-                    "GROUP BY gid\n" +
-                    "ORDER BY time_sum DESC\n" +
-                    "LIMIT 1");
+            PreparedStatement statement = conn.prepareStatement("SELECT geid FROM game_genre INNER JOIN\n" +
+                    "        (SELECT gid, sum(time_played) AS time_sum\n" +
+                    "        FROM plays\n" +
+                    "        WHERE username = 'xnkuof6'\n" +
+                    "        GROUP BY gid\n" +
+                    "        ORDER BY time_sum DESC\n" +
+                    "        LIMIT 3) AS foo ON foo.gid = game_genre.gid\n" +
+                    "        GROUP BY geid");//gets all the genres of this user's 3 most played games, as genre ids
             statement.setString(1, currentUser.username());
             ResultSet rs = statement.executeQuery();
-            if(rs.next()){
-                Game game = getGame(rs.getInt(1));
-                String[] arr = game.genres();//gets all the genres of the game selected
-                if(arr.length == 0)
-                    return new Game[0];
-                String genre = arr[(new Random()).nextInt(0, arr.length)]; // selects a random genre
-                PreparedStatement gameStatement = conn.prepareStatement("SELECT gid FROM game_genre INNER JOIN genre g on g.geid = game_genre.geid\n" +
-                        "WHERE name = ?");
-                gameStatement.setString(1, genre);
-                List<Game> games = new ArrayList<>();
-                while(rs.next()){
-                    games.add(getGame(rs.getInt(1)));
-                    if(games.size() == 20) break;
-                }
-                games.sort(new Comparator<Game>() {
-                    @Override
-                    public int compare(Game o1, Game o2) {
-                        double firstRating = averageRating(o1);
-                        double secondRating = averageRating(o2);
-                        if(firstRating > secondRating){
-                            return -1;
-                        } else if (secondRating > firstRating){
-                            return 1;
-                        }
-                        return 0;
-                    }
-
-                    /**
-                     * Calculates the average rating of a game
-                     * @param game The game to calculate the rating of
-                     * @return The average rating
-                     */
-                    private double averageRating(Game game){
-                        int[] ratings = game.ratings();
-                        double avg = 0;
-                        for(int rating : ratings)
-                            avg += rating;
-                        return avg / ratings.length;
-                    }
-                });// sorts by higher average rating
-                int size = Math.min(games.size(), 5);
-                Game[] recommendedGames = new Game[size];
-                for(int i = 0; i < size; i++)
-                    recommendedGames[i] = games.get(i);
-                return recommendedGames;
-            } else {
-                return new Game[0];
+            List<Integer> genres = new ArrayList<>();
+            while(rs.next()){
+                genres.add(rs.getInt(1));
             }
+
+            int genreID = genres.get((new Random()).nextInt(0, genres.size()));//chooses randomly one of the genres
+            PreparedStatement statement1 = conn.prepareStatement("SELECT plays.gid, sum(time_played) as time_sum\n" +
+                    "FROM plays INNER JOIN game_genre ON geid = ? AND plays.gid = game_genre.gid\n" +
+                    "GROUP BY plays.gid\n" +
+                    "ORDER BY sum(time_played) DESC\n" +
+                    "LIMIT 5");
+            statement1.setInt(1, genreID);
+            ResultSet rs1 = statement1.executeQuery();
+            List<Game> games = new ArrayList<>();
+            while(rs1.next()){
+                games.add(getGame(rs1.getInt(1)));
+            }
+            return games.toArray(new Game[0]);
         } catch (SQLException ignored){}
         return new Game[0];
     }
