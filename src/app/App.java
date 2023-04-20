@@ -1177,7 +1177,7 @@ public class App implements IApp {
             PreparedStatement statement = conn.prepareStatement("SELECT geid FROM game_genre INNER JOIN\n" +
                     "        (SELECT gid, sum(time_played) AS time_sum\n" +
                     "        FROM plays\n" +
-                    "        WHERE username = 'xnkuof6'\n" +
+                    "        WHERE username = ?\n" +
                     "        GROUP BY gid\n" +
                     "        ORDER BY time_sum DESC\n" +
                     "        LIMIT 3) AS foo ON foo.gid = game_genre.gid\n" +
