@@ -26,3 +26,6 @@ hs_err_pid*
 
 # dotenv file
 .env
+
+# everything in this directory is crap
+.idea/

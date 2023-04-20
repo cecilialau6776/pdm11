@@ -180,6 +180,7 @@ public class App implements IApp {
                 BCrypt.Result result = BCrypt.verifyer().verify(password.toCharArray(), rsPwHash);
                 if (!result.verified) {
                     System.out.println("Incorrect password");
+                    return null;
                 }
                 Date current_date = new Date(new java.util.Date().getTime());//to update last access date
                 updateLastAccessDate.setDate(1, current_date);

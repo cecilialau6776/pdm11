@@ -9,5 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="jsch" level="project" />
     <orderEntry type="library" name="postgresql" level="project" />
+    <orderEntry type="library" name="bcrypt-0.10.2" level="project" />
+    <orderEntry type="library" name="bytes-1.6.1" level="project" />
   </component>
 </module>
