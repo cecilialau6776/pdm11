@@ -1179,12 +1179,15 @@ public class App implements IApp {
     @Override
     public Game[] recommend_month() {
         try{
-            PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum " +
-                    "FROM plays\n" +
-                    "WHERE EXTRACT(MONTH FROM current_date) = EXTRACT(MONTH FROM play_date)\n" +
-                    "GROUP BY gid\n" +
+            PreparedStatement statement = conn.prepareStatement("SELECT foo.gid, sum(time_played) as time_sum FROM (SELECT gid\n" +
+                    "                 FROM game_platform\n" +
+                    "                 WHERE EXTRACT(MONTH FROM current_date) = EXTRACT(MONTH FROM release_date)\n" +
+                    "                 AND EXTRACT(YEAR FROM current_date) = EXTRACT(YEAR FROM release_date)\n" +
+                    "                 GROUP BY gid) AS foo\n" +
+                    "INNER JOIN plays ON foo.gid = plays.gid\n" +
+                    "GROUP BY foo.gid\n" +
                     "ORDER BY time_sum DESC\n" +
-                    "LIMIT 5\n");
+                    "LIMIT 5");
             ResultSet rs = statement.executeQuery();
             List<Game> games = new ArrayList<>();
             while(rs.next()){
