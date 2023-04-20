@@ -1130,28 +1130,21 @@ public class App implements IApp {
     @Override
     public Game[] recommend_friends() {
         try{
-            String[] usernames = get_friend_username();
+            PreparedStatement statement = conn.prepareStatement("SELECT gid, foo.friend, sum(time_played) as time_sum FROM\n" +
+                    "       (SELECT friend\n" +
+                    "        FROM friends\n" +
+                    "        WHERE \"user\" = ?) AS foo\n" +
+                    "INNER JOIN plays ON foo.friend = username\n" +
+                    "GROUP BY gid, foo.friend\n" +
+                    "ORDER BY time_sum DESC\n" +
+                    "LIMIT 20");
+            statement.setString(1, currentUser.username());
+            ResultSet rs = statement.executeQuery();
             List<Game> games = new ArrayList<>();
-            for(String username: usernames){
-                PreparedStatement statement = conn.prepareStatement("SELECT gid, sum(time_played) AS time_sum\n" +
-                        "FROM plays\n" +
-                        "WHERE username = ?\n" +
-                        "GROUP BY gid\n" +
-                        "ORDER BY time_sum DESC\n" +
-                        "LIMIT 20");
-                statement.setString(1, username);
-                ResultSet rs = statement.executeQuery();
-                while(rs.next()){
-                    games.add(getGame(rs.getInt(1), username));
-                }
-                games.sort((o1, o2) -> o2.playtime().compareTo(o1.playtime()));
-                List<Game> arrangedGames = new ArrayList<>();
-                for(int i = 0; i < games.size() && i < 20; i++){
-                    arrangedGames.add(games.get(i));
-                }
-                return arrangedGames.toArray(new Game[0]);
+            while(rs.next()){
+                games.add(getGame(rs.getInt(1)));
             }
-
+            return games.toArray(new Game[0]);
         } catch (SQLException ignored){}
         return new Game[0];
     }
